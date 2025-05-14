@@ -22,7 +22,7 @@ def gen_poblacion():
         poblacion.append(cromosoma)
         
     return poblacion
-#Generamos la poblacion inicial #CAMBIO 
+#Generamos la poblacion inicial 
 poblacion = gen_poblacion()
 #Cromosoma a decimial
 def cromosoma_decimal(cromosoma):
@@ -93,3 +93,83 @@ print(df_res.to_string(index=False,
     }
 ))
 
+#Seleccion por ruleta
+
+def seleccion_ruleta(poblacion):
+    # Calculamos la suma total de fitness
+    total_fit = fitness_total(poblacion)
+    
+    # Creamos un array de 100 posiciones
+    ruleta = []
+    
+    # Asignamos cromosomas al array según su proporción de fitness
+    for i, cromosoma in enumerate(poblacion):
+        # Calculamos cuántas posiciones ocupa este cromosoma en la ruleta
+        proporciones = int((fitness(cromosoma) / total_fit) * 100)
+        ruleta.extend([i] * proporciones)  # Añadimos el índice del cromosoma
+    
+    # Sorteamos una posición en la ruleta
+    posicion = random.randint(0, len(ruleta) - 1)
+    
+    # Devolvemos el cromosoma seleccionado
+    return poblacion[ruleta[posicion]]
+
+nueva_poblacion_ruleta = []  # Inicializamos la nueva población como una lista vacía
+for _ in range(10):  # Iteramos 10 veces para generar 10 cromosomas
+    nueva_poblacion_ruleta .append(seleccion_ruleta(poblacion))  # Agregamos el cromosoma seleccionado a la nueva población
+
+# Imprimimos la nueva población generada
+print("Nueva población generada:")
+for i, cromosoma in enumerate(nueva_poblacion_ruleta , 1):
+    print(f"Cromosoma {i}: {cromosoma}")
+    
+#Realizamos crossover
+# Realizamos el crossover de un corte con probabilidad
+def crossover_un_corte(nueva_poblacion_ruleta, prob_cross):
+    nueva_poblacion_crossover = []
+    for i in range(0, len(nueva_poblacion_ruleta), 2):  # Iteramos en pares
+        padre1 = nueva_poblacion_ruleta[i]
+        padre2 = nueva_poblacion_ruleta[i + 1]
+        
+        # Decidimos si realizar el crossover según la probabilidad
+        if random.random() < prob_cross:
+            # Elegimos un punto de corte al azar
+            punto_corte = random.randint(1, gen_size - 1)  # Entre 1 y gen_size-1
+            
+            # Creamos los hijos intercambiando genes en el punto de corte
+            hijo1 = padre1[:punto_corte] + padre2[punto_corte:]
+            hijo2 = padre2[:punto_corte] + padre1[punto_corte:]
+        else:
+            # Si no se realiza crossover, los hijos son copias de los padres
+            hijo1 = padre1
+            hijo2 = padre2
+        
+        # Añadimos los hijos a la nueva población
+        nueva_poblacion_crossover.append(hijo1)
+        nueva_poblacion_crossover.append(hijo2)
+    
+    return nueva_poblacion_crossover
+
+# Aplicamos el crossover a la nueva población con probabilidad prob_cross
+Nueva_poblacion_crossover = crossover_un_corte(nueva_poblacion_ruleta, prob_cross)
+
+# Imprimimos la nueva población después del crossover
+print("Nueva población después del crossover:")
+for i, cromosoma in enumerate(Nueva_poblacion_crossover, 1):
+    print(f"Cromosoma {i}: {cromosoma}")
+    
+#Realizamos mutacion
+def mutacion(Nueva_poblacion_crossover, prob_mut):
+    for j in range(len(Nueva_poblacion_crossover)):
+        for i in range(len(Nueva_poblacion_crossover[j])):
+            if random.random() < prob_mut:
+                # Cambiamos el bit
+                print ("Habemus mutacion")
+                Nueva_poblacion_crossover[j][i] = 1 - Nueva_poblacion_crossover[j][i]  # Cambia de 0 a 1 o de 1 a 0
+        return Nueva_poblacion_crossover
+    
+# Imprimimos la nueva población después de la mutación
+Nueva_poblacion_mutacion = mutacion(Nueva_poblacion_crossover, prob_mut)
+print("Nueva población después del mutación:")
+for i, cromosoma in enumerate(Nueva_poblacion_mutacion, 1):
+    print(f"Cromosoma {i}: {cromosoma}")
