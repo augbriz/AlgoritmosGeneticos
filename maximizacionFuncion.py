@@ -1,11 +1,15 @@
 import pandas as pd
 import random 
 import heapq
+import matplotlib.pyplot as plt     # para graficar
+from colorama import init, Fore, Style
+init()
+
 #Fijamos el valor de las variables a utilizar
 prob_cross = 0.75
 prob_mut = 0.05
 pob_ini = 10 
-ciclos = 20
+ciclos = 50
 gen_size = 30
 coef = 2**30 - 1
 poblacion = []
@@ -22,8 +26,8 @@ def gen_poblacion():
         poblacion.append(cromosoma)
         
     return poblacion
-#Generamos la poblacion inicial 
-poblacion = gen_poblacion()
+
+
 #Cromosoma a decimial
 def cromosoma_decimal(cromosoma):
     decimal = 0
@@ -47,54 +51,6 @@ def fitness_total(poblacion):
     return suma    
 
 
-for i in range (pob_ini):
-    print("Numero de cromosoma: ", i+1)
-    print("Cromosoma: ", poblacion[i])
-    print("Decimal: ", cromosoma_decimal(poblacion[i]))
-    print("Valor funcion: ", fitness(poblacion[i]))
-    print("Fitness: ", (fitness(poblacion[i]))/fitness_total(poblacion))
-    print("----------------------------------------------------")
-    
-
-total_fit = fitness_total(poblacion)
-# 2) Preparamos las columnas
-nums      = list(range(1, pob_ini+1))
-crom_s    = [''.join(str(b) for b in c) for c in poblacion]
-decimals  = [cromosoma_decimal(c) for c in poblacion]
-f_objs    = [fitness(c) for c in poblacion]
-fits      = [f/total_fit for f in f_objs]
-
-# 3) DataFrame principal
-df = pd.DataFrame({
-    'Num':        nums,
-    'Cromosoma':  crom_s,
-    'Decimal':    decimals,
-    'F_obj':      f_objs,
-    'Fitness':    fits
-})
-
-# 4) Fila de resumen: suma, promedio y máximo
-resumen = pd.DataFrame({
-    'Num':        ['suma', 'promedio', 'maximo'],
-    'Cromosoma':  ['', '', ''],
-    'Decimal':    [df['Decimal'].sum(), df['Decimal'].mean(), df['Decimal'].max()],
-    'F_obj':      [df['F_obj'].sum(),    df['F_obj'].mean(),    df['F_obj'].max()],
-    'Fitness':    [df['Fitness'].sum(),  df['Fitness'].mean(),  df['Fitness'].max()]
-})
-
-df_res = pd.concat([df, resumen], ignore_index=True)
-
-# 5) Imprimimos la tabla formateada
-print(df_res.to_string(index=False, 
-    formatters={
-      'Decimal': '{:.0f}'.format,
-      'F_obj':   '{:.2f}'.format,
-      'Fitness': '{:.2f}'.format
-    }
-))
-
-#Seleccion por ruleta
-
 def seleccion_ruleta(poblacion):
     # Calculamos la suma total de fitness
     total_fit = fitness_total(poblacion)
@@ -114,14 +70,7 @@ def seleccion_ruleta(poblacion):
     # Devolvemos el cromosoma seleccionado
     return poblacion[ruleta[posicion]]
 
-nueva_poblacion_ruleta = []  # Inicializamos la nueva población como una lista vacía
-for _ in range(10):  # Iteramos 10 veces para generar 10 cromosomas
-    nueva_poblacion_ruleta .append(seleccion_ruleta(poblacion))  # Agregamos el cromosoma seleccionado a la nueva población
 
-# Imprimimos la nueva población generada
-print("Nueva población generada:")
-for i, cromosoma in enumerate(nueva_poblacion_ruleta , 1):
-    print(f"Cromosoma {i}: {cromosoma}")
     
 #Realizamos crossover
 # Realizamos el crossover de un corte con probabilidad
@@ -150,29 +99,104 @@ def crossover_un_corte(nueva_poblacion_ruleta, prob_cross):
     
     return nueva_poblacion_crossover
 
-# Aplicamos el crossover a la nueva población con probabilidad prob_cross
-Nueva_poblacion_crossover = crossover_un_corte(nueva_poblacion_ruleta, prob_cross)
-
-# Imprimimos la nueva población después del crossover
-print("Nueva población después del crossover:")
-for i, cromosoma in enumerate(Nueva_poblacion_crossover, 1):
-    print(f"Cromosoma {i}: {cromosoma}")
-    
 #Realizamos mutacion
 def mutacion(Nueva_poblacion_crossover, prob_mut):
     for j in range(len(Nueva_poblacion_crossover)):
         if random.random() < prob_mut:
             # Elegimos un punto de mutación al azar
             punto_mutacion = random.randint(0, gen_size - 1)
-            print ("Habemus mutacion")
+            print(Fore.RED + "\n----------------------------------------------------Habemus mutacion----------------------------------------------------" + Style.RESET_ALL)
             Nueva_poblacion_crossover[j][punto_mutacion] = 1 - Nueva_poblacion_crossover[j][punto_mutacion]  # Cambia de 0 a 1 o de 1 a 0
     return Nueva_poblacion_crossover
     
-# Imprimimos la nueva población después de la mutación
-Nueva_poblacion_mutacion = mutacion(Nueva_poblacion_crossover, prob_mut)
-print("Nueva población después del mutación:")
-for i, cromosoma in enumerate(Nueva_poblacion_mutacion, 1):
-    print(f"Cromosoma {i}: {cromosoma}")
+#Generamos la poblacion inicial 
+poblacion = gen_poblacion()
+
+# Lista para guardar el fitness promedio en cada ciclo
+avg_fitness = []
+
+for i in range (pob_ini):
+    print("Numero de cromosoma: ", i+1)
+    print("Cromosoma: ", poblacion[i])
+    print("Decimal: ", cromosoma_decimal(poblacion[i]))
+    print("Valor funcion: ", fitness(poblacion[i]))
+    print("Fitness: ", (fitness(poblacion[i]))/fitness_total(poblacion))
+    print("----------------------------------------------------")
     
 
+for i in range(ciclos):
+    print(Fore.GREEN +"'\n'""----------------------------------------------------Ciclo: ", i+1, "----------------------------------------------------", '\n' + Style.RESET_ALL)
+    total_fit = fitness_total(poblacion)
     
+    # 2) Preparamos las columnas y calculamos fitness de cada cromosoma
+    nums      = list(range(1, pob_ini+1))
+    crom_s    = [''.join(str(b) for b in c) for c in poblacion]
+    decimals  = [cromosoma_decimal(c) for c in poblacion]
+    f_objs    = [fitness(c) for c in poblacion]
+    fits      = [f/total_fit for f in f_objs]
+    
+    # Calculamos y almacenamos el fitness promedio
+    promedio = sum(f_objs) / len(poblacion)
+    avg_fitness.append(promedio)
+    
+    # 3) DataFrame principal
+    df = pd.DataFrame({
+        'Num':        nums,
+        'Cromosoma':  crom_s,
+        'Decimal':    decimals,
+        'F_obj':      f_objs,
+        'Fitness':    fits
+    })
+    
+    # 4) Fila de resumen: suma, promedio y máximo
+    resumen = pd.DataFrame({
+        'Num':        ['suma', 'promedio', 'maximo'],
+        'Cromosoma':  ['', '', ''],
+        'Decimal':    [df['Decimal'].sum(), df['Decimal'].mean(), df['Decimal'].max()],
+        'F_obj':      [df['F_obj'].sum(),    df['F_obj'].mean(),    df['F_obj'].max()],
+        'Fitness':    [df['Fitness'].sum(),  df['Fitness'].mean(),  df['Fitness'].max()]
+    })
+    
+    df_res = pd.concat([df, resumen], ignore_index=True)
+    print(df_res.to_string(index=False,
+        formatters={
+            'Decimal': '{:.0f}'.format,
+            'F_obj':   '{:.2f}'.format,
+            'Fitness': '{:.2f}'.format
+        }
+    ))
+    
+    # Generación de nueva población por ruleta, crossover y mutación...
+    nueva_poblacion = []  # Inicializamos la nueva población
+    for _ in range(10):  
+        nueva_poblacion.append(seleccion_ruleta(poblacion))
+    
+    #print("'\n'----------------------------------------------------Nueva población generada: ----------------------------------------------------")
+    #for i, cromosoma in enumerate(nueva_poblacion , 1):
+        #print(f"Cromosoma {i}: {cromosoma}")
+    
+    nueva_poblacion = crossover_un_corte(nueva_poblacion, prob_cross)
+    
+    #print("'\n'----------------------------------------------------Nueva población después del crossover: ----------------------------------------------------")
+    #for i, cromosoma in enumerate(nueva_poblacion, 1):
+        #print(f"Cromosoma {i}: {cromosoma}")
+        
+    nueva_poblacion = mutacion(nueva_poblacion, prob_mut)
+    
+    #print("'\n'----------------------------------------------------Nueva población después del mutación: ----------------------------------------------------")
+    #for i, cromosoma in enumerate(nueva_poblacion, 1):
+        #print(f"Cromosoma {i}: {cromosoma}")
+    
+    poblacion = nueva_poblacion  # Actualizamos la población para la siguiente iteración
+
+# Después de completar los ciclos, graficamos:
+plt.figure()
+plt.plot(range(1, ciclos+1), avg_fitness, marker='o')
+plt.title('Evolución del fitness promedio')
+plt.xlabel('Ciclo')
+plt.ylabel('Fitness promedio')
+plt.grid(True)
+plt.show()
+
+
+
