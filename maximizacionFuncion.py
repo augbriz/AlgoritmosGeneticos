@@ -161,15 +161,18 @@ for i, cromosoma in enumerate(Nueva_poblacion_crossover, 1):
 #Realizamos mutacion
 def mutacion(Nueva_poblacion_crossover, prob_mut):
     for j in range(len(Nueva_poblacion_crossover)):
-        for i in range(len(Nueva_poblacion_crossover[j])):
-            if random.random() < prob_mut:
-                # Cambiamos el bit
-                print ("Habemus mutacion")
-                Nueva_poblacion_crossover[j][i] = 1 - Nueva_poblacion_crossover[j][i]  # Cambia de 0 a 1 o de 1 a 0
-        return Nueva_poblacion_crossover
+        if random.random() < prob_mut:
+            # Elegimos un punto de mutación al azar
+            punto_mutacion = random.randint(0, gen_size - 1)
+            print ("Habemus mutacion")
+            Nueva_poblacion_crossover[j][punto_mutacion] = 1 - Nueva_poblacion_crossover[j][punto_mutacion]  # Cambia de 0 a 1 o de 1 a 0
+    return Nueva_poblacion_crossover
     
 # Imprimimos la nueva población después de la mutación
 Nueva_poblacion_mutacion = mutacion(Nueva_poblacion_crossover, prob_mut)
 print("Nueva población después del mutación:")
 for i, cromosoma in enumerate(Nueva_poblacion_mutacion, 1):
     print(f"Cromosoma {i}: {cromosoma}")
+    
+
+    
