@@ -38,8 +38,8 @@ def cromosoma_decimal(cromosoma):
 
 #Valuamos la funcion por cromosoma
 def fitness(cromosoma):
- decimal = cromosoma_decimal(cromosoma)
- return (decimal/coef)**2
+    decimal = cromosoma_decimal(cromosoma)
+    return (decimal/coef)**2
 
 
 #Sacamos porcentaje de fitness
@@ -112,8 +112,13 @@ def mutacion(Nueva_poblacion_crossover, prob_mut):
 #Generamos la poblacion inicial 
 poblacion = gen_poblacion()
 
-# Lista para guardar el fitness promedio en cada ciclo
+# Lista para guardar el fitness promedio en cada ciclo, Aqui se debería guardar tambien el promedio de la funcion objetivo, maximo y minimo de cada población
 avg_fitness = []
+
+# Listas para guardar los valores promedio, máximo y mínimo de la función objetivo
+avg_f_obj = []
+max_f_obj = []
+min_f_obj = []
 
 for i in range (pob_ini):
     print("Numero de cromosoma: ", i+1)
@@ -125,7 +130,7 @@ for i in range (pob_ini):
     
 
 for i in range(ciclos):
-    print(Fore.GREEN +"'\n'""----------------------------------------------------Ciclo: ", i+1, "----------------------------------------------------", '\n' + Style.RESET_ALL)
+    print(Fore.GREEN + f"\n---------------------------------------------------- Ciclo: {i+1} ----------------------------------------------------\n" + Style.RESET_ALL)
     total_fit = fitness_total(poblacion)
     
     # 2) Preparamos las columnas y calculamos fitness de cada cromosoma
@@ -135,9 +140,14 @@ for i in range(ciclos):
     f_objs    = [fitness(c) for c in poblacion]
     fits      = [f/total_fit for f in f_objs]
     
-    # Calculamos y almacenamos el fitness promedio
+    # Calculamos y almacenamos los valores promedio, máximo y mínimo de la función objetivo
     promedio = sum(f_objs) / len(poblacion)
-    avg_fitness.append(promedio)
+    maximo = max(f_objs)
+    minimo = min(f_objs)
+    
+    avg_f_obj.append(promedio)
+    max_f_obj.append(maximo)
+    min_f_obj.append(minimo)
     
     # 3) DataFrame principal
     df = pd.DataFrame({
@@ -191,10 +201,13 @@ for i in range(ciclos):
 
 # Después de completar los ciclos, graficamos:
 plt.figure()
-plt.plot(range(1, ciclos+1), avg_fitness, marker='o')
-plt.title('Evolución del fitness promedio')
+plt.plot(range(1, ciclos+1), avg_f_obj, marker='o', label='Promedio F_obj')
+plt.plot(range(1, ciclos+1), max_f_obj, marker='x', label='Máximo F_obj', color='red')
+plt.plot(range(1, ciclos+1), min_f_obj, marker='s', label='Mínimo F_obj', color='green')
+plt.title('Evolución de la función objetivo')
 plt.xlabel('Ciclo')
-plt.ylabel('Fitness promedio')
+plt.ylabel('Valor de la función objetivo')
+plt.legend()
 plt.grid(True)
 plt.show()
 
