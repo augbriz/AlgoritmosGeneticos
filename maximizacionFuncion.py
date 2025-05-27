@@ -9,7 +9,7 @@ init()
 prob_cross = 0.75
 prob_mut = 0.05
 pob_ini = 10 
-ciclos = 50
+ciclos = int(input("cantidad de ciclos a realizar: "))
 gen_size = 30
 coef = 2**30 - 1
 poblacion = []
@@ -70,8 +70,24 @@ def seleccion_ruleta(poblacion):
     # Devolvemos el cromosoma seleccionado
     return poblacion[ruleta[posicion]]
 
+# Selección por torneo: toma un porcentaje de la población y elige el de mayor fitness
+def seleccion_torneo(poblacion, porcentaje=0.4):
+    global pob_ini
+    # nueva_pobl almacenará los cromosomas ganadores de cada torneo
+    nueva_pobl = []
 
-    
+    tam_torneo = (int(len(poblacion) * porcentaje))
+    # repetimos hasta seleccionar n_select cromosomas
+    for _ in range(pob_ini):
+        # elegimos al azar 'tam_torneo' participantes del torneo
+        participantes = random.sample(poblacion, tam_torneo)
+        # de esos participantes, seleccionamos el de mayor fitness
+        ganador = max(participantes, key=fitness)
+        # agregamos el ganador a la nueva lista
+        nueva_pobl.append(ganador)
+    # devolvemos la población resultante tras todos los torneos
+    return nueva_pobl
+
 #Realizamos crossover
 # Realizamos el crossover de un corte con probabilidad
 def crossover_un_corte(nueva_poblacion_ruleta, prob_cross):
@@ -111,6 +127,14 @@ def mutacion(Nueva_poblacion_crossover, prob_mut):
     
 #Generamos la poblacion inicial 
 poblacion = gen_poblacion()
+
+# Pregunta al usuario qué método usar
+print("Seleccione el método de selección:\n1) Ruleta\n2) Torneo")
+sel_method = input("Ingrese 1 o 2: ")
+
+# Pregunta al usuario si desea elitismo (solo aplica para ruleta)
+print("¿Desea implementar elitismo? (s/n)")
+elitismo = input().lower()
 
 # Lista para guardar el fitness promedio en cada ciclo, Aqui se debería guardar tambien el promedio de la funcion objetivo, maximo y minimo de cada población
 avg_fitness = []
@@ -176,28 +200,35 @@ for i in range(ciclos):
         }
     ))
     
-    # Generación de nueva población por ruleta, crossover y mutación...
-    nueva_poblacion = []  # Inicializamos la nueva población
-    for _ in range(10):  
-        nueva_poblacion.append(seleccion_ruleta(poblacion))
-    
-    #print("'\n'----------------------------------------------------Nueva población generada: ----------------------------------------------------")
-    #for i, cromosoma in enumerate(nueva_poblacion , 1):
-        #print(f"Cromosoma {i}: {cromosoma}")
-    
-    nueva_poblacion = crossover_un_corte(nueva_poblacion, prob_cross)
-    
-    #print("'\n'----------------------------------------------------Nueva población después del crossover: ----------------------------------------------------")
-    #for i, cromosoma in enumerate(nueva_poblacion, 1):
-        #print(f"Cromosoma {i}: {cromosoma}")
-        
-    nueva_poblacion = mutacion(nueva_poblacion, prob_mut)
-    
-    #print("'\n'----------------------------------------------------Nueva población después del mutación: ----------------------------------------------------")
-    #for i, cromosoma in enumerate(nueva_poblacion, 1):
-        #print(f"Cromosoma {i}: {cromosoma}")
+    # Generación de nueva población
+    if sel_method == '1':
+        if elitismo == 's':
+            # extraemos dos mejores directos (sin crossover ni mutación)
+            elite = sorted(poblacion, key=fitness, reverse=True)[:2]
+            # resto de la población vía ruleta
+            resto = [seleccion_ruleta(poblacion) for _ in range(pob_ini - 2)]
+            # aplicamos crossover y mutación solo al resto
+            resto = crossover_un_corte(resto, prob_cross)
+            resto = mutacion(resto, prob_mut)
+            nueva_poblacion = elite + resto
+        else:
+            # ruleta completa con crossover y mutación
+            tmp = [seleccion_ruleta(poblacion) for _ in range(pob_ini)]
+            nueva_poblacion = crossover_un_corte(tmp, prob_cross)
+            nueva_poblacion = mutacion(nueva_poblacion, prob_mut)
+    elif sel_method == '2':
+        # torneo completo con crossover y mutación
+        tmp = seleccion_torneo(poblacion, 0.4)
+        nueva_poblacion = crossover_un_corte(tmp, prob_cross)
+        nueva_poblacion = mutacion(nueva_poblacion, prob_mut)
+    else:
+        print("Método no válido, usando ruleta por defecto")
+        tmp = [seleccion_ruleta(poblacion) for _ in range(pob_ini)]
+        nueva_poblacion = crossover_un_corte(tmp, prob_cross)
+        nueva_poblacion = mutacion(nueva_poblacion, prob_mut)
     
     poblacion = nueva_poblacion  # Actualizamos la población para la siguiente iteración
+     
 
 # Después de completar los ciclos, graficamos:
 plt.figure()
