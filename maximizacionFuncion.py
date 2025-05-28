@@ -128,21 +128,25 @@ def mutacion(Nueva_poblacion_crossover, prob_mut):
 #Generamos la poblacion inicial 
 poblacion = gen_poblacion()
 
-# Pregunta al usuario qué método usar
+# 2) Selección de método
 print("Seleccione el método de selección:\n1) Ruleta\n2) Torneo")
 sel_method = input("Ingrese 1 o 2: ")
 
-# Pregunta al usuario si desea elitismo (solo aplica para ruleta)
-print("¿Desea implementar elitismo? (s/n)")
-elitismo = input().lower()
+# 3) Si eligió ruleta, preguntar por elitismo
+elitismo = False
+if sel_method == '1':
+    print("¿Desea implementar elitismo? (s/n)")
+    elitismo = (input().lower() == 's')
 
 # Lista para guardar el fitness promedio en cada ciclo, Aqui se debería guardar tambien el promedio de la funcion objetivo, maximo y minimo de cada población
 avg_fitness = []
 
 # Listas para guardar los valores promedio, máximo y mínimo de la función objetivo
-avg_f_obj = []
-max_f_obj = []
-min_f_obj = []
+prom_f_obj = []
+max_f_obj  = []
+min_f_obj  = []
+# Lista para guardar el mejor cromosoma de cada ciclo
+mejor_cromosoma = []
 
 for i in range (pob_ini):
     print("Numero de cromosoma: ", i+1)
@@ -160,24 +164,26 @@ for i in range(ciclos):
     # 2) Preparamos las columnas y calculamos fitness de cada cromosoma
     nums      = list(range(1, pob_ini+1))
     crom_s    = [''.join(str(b) for b in c) for c in poblacion]
-    decimals  = [cromosoma_decimal(c) for c in poblacion]
+    decimales = [cromosoma_decimal(c) for c in poblacion]
     f_objs    = [fitness(c) for c in poblacion]
     fits      = [f/total_fit for f in f_objs]
     
     # Calculamos y almacenamos los valores promedio, máximo y mínimo de la función objetivo
     promedio = sum(f_objs) / len(poblacion)
-    maximo = max(f_objs)
-    minimo = min(f_objs)
+    maximo  = max(f_objs)
+    minimo  = min(f_objs)
     
-    avg_f_obj.append(promedio)
+    prom_f_obj.append(promedio)
     max_f_obj.append(maximo)
     min_f_obj.append(minimo)
+    # almacenar cromosoma con fitness máximo
+    mejor_cromosoma.append(crom_s[f_objs.index(maximo)])
     
     # 3) DataFrame principal
     df = pd.DataFrame({
         'Num':        nums,
         'Cromosoma':  crom_s,
-        'Decimal':    decimals,
+        'Decimal':    decimales,
         'F_obj':      f_objs,
         'Fitness':    fits
     })
@@ -232,7 +238,7 @@ for i in range(ciclos):
 
 # Después de completar los ciclos, graficamos:
 plt.figure()
-plt.plot(range(1, ciclos+1), avg_f_obj, marker='o', label='Promedio F_obj')
+plt.plot(range(1, ciclos+1), prom_f_obj, marker='o', label='Promedio F_obj')
 plt.plot(range(1, ciclos+1), max_f_obj, marker='x', label='Máximo F_obj', color='red')
 plt.plot(range(1, ciclos+1), min_f_obj, marker='s', label='Mínimo F_obj', color='green')
 plt.title('Evolución de la función objetivo')
@@ -240,7 +246,20 @@ plt.xlabel('Ciclo')
 plt.ylabel('Valor de la función objetivo')
 plt.legend()
 plt.grid(True)
-plt.show()
 
+# Tabla final de resumen de cada ciclo
+df_final = pd.DataFrame({
+    'Ciclo':           list(range(1, ciclos+1)),
+    'Máximo F_obj':   max_f_obj,
+    'Mínimo F_obj':   min_f_obj,
+    'Promedio F_obj': prom_f_obj,
+    'Mejor Cromosoma': mejor_cromosoma
+})
+print("\nTabla Resumen:")
+print("Cantidad de ciclos:", ciclos)
+print(df_final.to_string(index=False))
+
+# mostramos el gráfico 
+plt.show()
 
 
