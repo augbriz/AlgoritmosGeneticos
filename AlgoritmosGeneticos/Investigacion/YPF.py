@@ -2,9 +2,11 @@ import yfinance as yf
 import nolds
 import matplotlib.pyplot as plt
 import numpy as np
-
+import datetime
+today = datetime.date.today()
+print("Fecha actual:", today)
 ticker = "YPF"
-data = yf.download(ticker, start="2008-01-01", end="2025-07-23")
+data = yf.download(ticker, start="2008-01-01", end=today)
 
 if data.empty or 'Close' not in data.columns:
     raise ValueError("No se pudieron obtener datos de cierre para el ticker especificado.")
