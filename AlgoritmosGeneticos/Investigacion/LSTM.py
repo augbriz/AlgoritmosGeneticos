@@ -28,8 +28,8 @@ print("GPU disponible:", tf.config.list_physical_devices('GPU'))
 tf.random.set_seed(42)
 np.random.seed(42)
 
-print("✅ Importaciones completadas exitosamente")
-print("🎯 Preparado para implementar modelo LSTM")
+print("Importaciones completadas exitosamente")
+print("Preparado para implementar modelo LSTM")
 
 # =============================================================================
 # CONSTANTES DEL PROYECTO
@@ -47,11 +47,11 @@ TRAIN_SPLIT = 0.7         # 70% para entrenamiento
 VAL_SPLIT = 0.15          # 15% para validación
 TEST_SPLIT = 0.15         # 15% para prueba
 
-print(f"📊 Configuración del proyecto:")
+print(f"Configuracion del proyecto:")
 print(f"   • Ticker: {TICKER}")
-print(f"   • Datos: {NUM_DATOS} puntos históricos")
-print(f"   • Ventana temporal: {LOOKBACK_WINDOW} días")
-print(f"   • División: {TRAIN_SPLIT:.0%} train, {VAL_SPLIT:.0%} val, {TEST_SPLIT:.0%} test")
+print(f"   • Datos: {NUM_DATOS} puntos historicos")
+print(f"   • Ventana temporal: {LOOKBACK_WINDOW} dias")
+print(f"   • Division: {TRAIN_SPLIT:.0%} train, {VAL_SPLIT:.0%} val, {TEST_SPLIT:.0%} test")
 
 
 # CARGA Y VISUALIZACIÓN DE DATOS
@@ -65,7 +65,7 @@ def cargar_datos_ypf():
     Returns:
         pd.Series: Serie temporal con los precios de cierre de YPF
     """
-    print("\n📥 Descargando datos de YPF...")
+    print("\nDescargando datos de YPF...")
     
     # Descargar datos (igual que en YPF.py para mantener consistencia)
     data = yf.download(TICKER, start=START_DATE, end=END_DATE, progress=False)
@@ -77,11 +77,11 @@ def cargar_datos_ypf():
     # Tomar los últimos NUM_DATOS puntos (1000, como en análisis caótico)
     precios_cierre = data['Close'].dropna().tail(NUM_DATOS)
     
-    print(f"✅ Datos cargados exitosamente:")
+    print(f"Datos cargados exitosamente:")
     print(f"   • Total de datos: {len(precios_cierre)}")
     print(f"   • Rango de fechas: {precios_cierre.index[0].date()} a {precios_cierre.index[-1].date()}")
-    print(f"   • Precio mínimo: ${float(precios_cierre.min()):.2f}")
-    print(f"   • Precio máximo: ${float(precios_cierre.max()):.2f}")
+    print(f"   • Precio minimo: ${float(precios_cierre.min()):.2f}")
+    print(f"   • Precio maximo: ${float(precios_cierre.max()):.2f}")
     print(f"   • Precio promedio: ${float(precios_cierre.mean()):.2f}")
     print(f"   • Volatilidad (std): ${float(precios_cierre.std()):.2f}")
     
@@ -94,35 +94,35 @@ def visualizar_datos(precios):
     Args:
         precios (pd.Series): Serie temporal con los precios de cierre
     """
-    print("\n📊 Creando visualización de la serie temporal...")
+    # print("\nCreando visualizacion de la serie temporal...")
     
-    plt.figure(figsize=(14, 8))
+    # plt.figure(figsize=(14, 8))
     
-    # Gráfico principal
-    plt.subplot(2, 1, 1)
-    plt.plot(precios.index, precios.values, linewidth=0.8, color='blue', alpha=0.8)
-    plt.title(f'Serie Temporal - {TICKER} (Últimos {len(precios)} días)', fontsize=16, fontweight='bold')
-    plt.xlabel('Fecha', fontsize=12)
-    plt.ylabel('Precio de Cierre (USD)', fontsize=12)
-    plt.grid(True, alpha=0.3)
-    plt.xticks(rotation=45)
+    # # Gráfico principal
+    # plt.subplot(2, 1, 1)
+    # plt.plot(precios.index, precios.values, linewidth=0.8, color='blue', alpha=0.8)
+    # plt.title(f'Serie Temporal - {TICKER} (Últimos {len(precios)} días)', fontsize=16, fontweight='bold')
+    # plt.xlabel('Fecha', fontsize=12)
+    # plt.ylabel('Precio de Cierre (USD)', fontsize=12)
+    # plt.grid(True, alpha=0.3)
+    # plt.xticks(rotation=45)
     
-    # Agregar información estadística en el gráfico
-    stats_text = f'Datos: {len(precios)} puntos\nÚltimo precio: ${float(precios.iloc[-1]):.2f}\nPromedio: ${float(precios.mean()):.2f}'
-    plt.text(0.02, 0.98, stats_text, 
-             transform=plt.gca().transAxes, fontsize=10, 
-             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+    # # Agregar información estadística en el gráfico
+    # stats_text = f'Datos: {len(precios)} puntos\nÚltimo precio: ${float(precios.iloc[-1]):.2f}\nPromedio: ${float(precios.mean()):.2f}'
+    # plt.text(0.02, 0.98, stats_text, 
+    #          transform=plt.gca().transAxes, fontsize=10, 
+    #          verticalalignment='top', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
     
-    # Gráfico de distribución de precios
-    plt.subplot(2, 1, 2)
-    plt.hist(precios.values, bins=50, alpha=0.7, color='skyblue', edgecolor='black')
-    plt.title('Distribución de Precios', fontsize=14)
-    plt.xlabel('Precio (USD)', fontsize=12)
-    plt.ylabel('Frecuencia', fontsize=12)
-    plt.grid(True, alpha=0.3)
+    # # Gráfico de distribución de precios
+    # plt.subplot(2, 1, 2)
+    # plt.hist(precios.values, bins=50, alpha=0.7, color='skyblue', edgecolor='black')
+    # plt.title('Distribución de Precios', fontsize=14)
+    # plt.xlabel('Precio (USD)', fontsize=12)
+    # plt.ylabel('Frecuencia', fontsize=12)
+    # plt.grid(True, alpha=0.3)
     
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
     
 
 
@@ -133,35 +133,35 @@ def analizar_datos_basico(precios):
     Args:
         precios (pd.Series): Serie temporal con los precios de cierre
     """
-    print("\n🔍 Análisis básico de la serie temporal:")
+    # print("\nAnalisis basico de la serie temporal:")
     
-    # Estadísticas descriptivas
-    print(f"\n📈 Estadísticas descriptivas:")
-    print(f"   • Cuenta: {len(precios)}")
-    print(f"   • Media: ${float(precios.mean()):.2f}")
-    print(f"   • Mediana: ${float(precios.median()):.2f}")
-    print(f"   • Desviación estándar: ${float(precios.std()):.2f}")
-    print(f"   • Mínimo: ${float(precios.min()):.2f}")
-    print(f"   • Máximo: ${float(precios.max()):.2f}")
+    # # Estadísticas descriptivas
+    # print(f"\nEstadisticas descriptivas:")
+    # print(f"   • Cuenta: {len(precios)}")
+    # print(f"   • Media: ${float(precios.mean()):.2f}")
+    # print(f"   • Mediana: ${float(precios.median()):.2f}")
+    # print(f"   • Desviacion estandar: ${float(precios.std()):.2f}")
+    # print(f"   • Minimo: ${float(precios.min()):.2f}")
+    # print(f"   • Maximo: ${float(precios.max()):.2f}")
     
-    # Análisis de tendencia básico
-    precio_inicial = float(precios.iloc[0])
-    precio_final = float(precios.iloc[-1])
-    variacion_total = ((precio_final - precio_inicial) / precio_inicial) * 100
+    # # Análisis de tendencia básico
+    # precio_inicial = float(precios.iloc[0])
+    # precio_final = float(precios.iloc[-1])
+    # variacion_total = ((precio_final - precio_inicial) / precio_inicial) * 100
     
-    print(f"\n📊 Análisis de tendencia:")
-    print(f"   • Precio inicial: ${precio_inicial:.2f}")
-    print(f"   • Precio final: ${precio_final:.2f}")
-    print(f"   • Variación total: {variacion_total:+.2f}%")
+    # print(f"\nAnalisis de tendencia:")
+    # print(f"   • Precio inicial: ${precio_inicial:.2f}")
+    # print(f"   • Precio final: ${precio_final:.2f}")
+    # print(f"   • Variacion total: {variacion_total:+.2f}%")
     
-    # Análisis de volatilidad básico
-    returns = precios.pct_change().dropna()
-    volatilidad_diaria = float(returns.std())
-    volatilidad_anualizada = volatilidad_diaria * np.sqrt(252)  # 252 días de trading por año
+    # # Análisis de volatilidad básico
+    # returns = precios.pct_change().dropna()
+    # volatilidad_diaria = float(returns.std())
+    # volatilidad_anualizada = volatilidad_diaria * np.sqrt(252)  # 252 días de trading por año
     
-    print(f"\n⚡ Análisis de volatilidad:")
-    print(f"   • Volatilidad diaria: {volatilidad_diaria:.4f}")
-    print(f"   • Volatilidad anualizada: {volatilidad_anualizada:.4f} ({volatilidad_anualizada*100:.2f}%)")
+    # print(f"\nAnalisis de volatilidad:")
+    # print(f"   • Volatilidad diaria: {volatilidad_diaria:.4f}")
+    # print(f"   • Volatilidad anualizada: {volatilidad_anualizada:.4f} ({volatilidad_anualizada*100:.2f}%)")
     
     return {
         'estadisticas': precios.describe(),
@@ -172,17 +172,17 @@ def analizar_datos_basico(precios):
 
 # Ejecutar la carga y análisis de datos
 print("\n" + "="*70)
-print("🚀 FASE 1: CARGA Y EXPLORACIÓN DE DATOS")
+print("FASE 1: CARGA Y EXPLORACION DE DATOS")
 print("="*70)
 
 # Cargar datos
 datos_ypf = cargar_datos_ypf()
 
 # Visualizar datos
-visualizar_datos(datos_ypf)
+# visualizar_datos(datos_ypf)
 
 # Análisis básico
-analisis_basico = analizar_datos_basico(datos_ypf)
+# analisis_basico = analizar_datos_basico(datos_ypf)
 
 # =============================================================================
 # PASO 3: PREPROCESAMIENTO PARA LSTM
@@ -203,7 +203,7 @@ def normalizar_datos(serie):
     Returns:
         tuple: (datos_normalizados, scaler_objeto)
     """
-    print("\n🔄 Normalizando datos a escala 0-1...")
+    print("\nNormalizando datos a escala 0-1...")
     
     # Crear el escalador MinMax (0-1)
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -214,11 +214,11 @@ def normalizar_datos(serie):
     # Ajustar el scaler y transformar los datos
     datos_normalizados = scaler.fit_transform(datos_array)
     
-    print(f"✅ Normalización completada:")
-    print(f"   • Valor original mínimo: ${float(serie.min()):.2f}")
-    print(f"   • Valor original máximo: ${float(serie.max()):.2f}")
-    print(f"   • Valor normalizado mínimo: {datos_normalizados.min():.4f}")
-    print(f"   • Valor normalizado máximo: {datos_normalizados.max():.4f}")
+    print(f"Normalizacion completada:")
+    print(f"   • Valor original minimo: ${float(serie.min()):.2f}")
+    print(f"   • Valor original maximo: ${float(serie.max()):.2f}")
+    print(f"   • Valor normalizado minimo: {datos_normalizados.min():.4f}")
+    print(f"   • Valor normalizado maximo: {datos_normalizados.max():.4f}")
     
     return datos_normalizados.flatten(), scaler
 
@@ -244,9 +244,9 @@ def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=1):
     Returns:
         tuple: (X, y) arrays para entrenamiento
     """
-    print(f"\n🏗️ Creando secuencias temporales...")
-    print(f"   • Ventana temporal: {lookback_window} días")
-    print(f"   • Horizonte de predicción: {prediction_horizon} día(s)")
+    print(f"\nCreando secuencias temporales...")
+    print(f"   • Ventana temporal: {lookback_window} dias")
+    print(f"   • Horizonte de prediccion: {prediction_horizon} dia(s)")
     
     X, y = [], []
     
@@ -262,7 +262,7 @@ def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=1):
     
     X, y = np.array(X), np.array(y)
     
-    print(f"✅ Secuencias creadas:")
+    print(f"Secuencias creadas:")
     print(f"   • Total de secuencias: {len(X)}")
     print(f"   • Forma de X (entrada): {X.shape}")
     print(f"   • Forma de y (objetivo): {y.shape}")
@@ -290,7 +290,7 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     Returns:
         tuple: (X_train, X_val, X_test, y_train, y_val, y_test)
     """
-    print(f"\n✂️ Dividiendo datos temporalmente...")
+    print(f"\nDividiendo datos temporalmente...")
     
     # Validar que las proporciones sumen 1
     if abs(train_split + val_split + test_split - 1.0) > 0.001:
@@ -311,9 +311,9 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     y_val = y[train_end:val_end]
     y_test = y[val_end:]
     
-    print(f"✅ División completada:")
+    print(f"Division completada:")
     print(f"   • Entrenamiento: {len(X_train)} secuencias ({len(X_train)/n_samples:.1%})")
-    print(f"   • Validación: {len(X_val)} secuencias ({len(X_val)/n_samples:.1%})")
+    print(f"   • Validacion: {len(X_val)} secuencias ({len(X_val)/n_samples:.1%})")
     print(f"   • Prueba: {len(X_test)} secuencias ({len(X_test)/n_samples:.1%})")
     
     return X_train, X_val, X_test, y_train, y_val, y_test
@@ -322,41 +322,42 @@ def visualizar_normalizacion(datos_originales, datos_normalizados):
     """
     Visualiza el efecto de la normalización
     """
-    print("\n📊 Creando visualización de la normalización...")
+    # print("\nCreando visualizacion de la normalizacion...")
     
-    plt.figure(figsize=(15, 6))
+    # plt.figure(figsize=(15, 6))
     
-    # Datos originales
-    plt.subplot(1, 2, 1)
-    plt.plot(datos_originales.values, color='blue', alpha=0.8)
-    plt.title('Datos Originales', fontsize=14, fontweight='bold')
-    plt.ylabel('Precio (USD)', fontsize=12)
-    plt.xlabel('Tiempo (días)', fontsize=12)
-    plt.grid(True, alpha=0.3)
+    # # Datos originales
+    # plt.subplot(1, 2, 1)
+    # plt.plot(datos_originales.values, color='blue', alpha=0.8)
+    # plt.title('Datos Originales', fontsize=14, fontweight='bold')
+    # plt.ylabel('Precio (USD)', fontsize=12)
+    # plt.xlabel('Tiempo (días)', fontsize=12)
+    # plt.grid(True, alpha=0.3)
     
-    # Datos normalizados
-    plt.subplot(1, 2, 2)
-    plt.plot(datos_normalizados, color='red', alpha=0.8)
-    plt.title('Datos Normalizados (0-1)', fontsize=14, fontweight='bold')
-    plt.ylabel('Valor Normalizado', fontsize=12)
-    plt.xlabel('Tiempo (días)', fontsize=12)
-    plt.grid(True, alpha=0.3)
+    # # Datos normalizados
+    # plt.subplot(1, 2, 2)
+    # plt.plot(datos_normalizados, color='red', alpha=0.8)
+    # plt.title('Datos Normalizados (0-1)', fontsize=14, fontweight='bold')
+    # plt.ylabel('Valor Normalizado', fontsize=12)
+    # plt.xlabel('Tiempo (días)', fontsize=12)
+    # plt.grid(True, alpha=0.3)
     
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
     
-    print("✅ Visualización de normalización completada")
+    # print("Visualizacion de normalizacion completada")
+    pass
 
 # Ejecutar preprocesamiento
 print("\n" + "="*70)
-print("🚀 FASE 2: PREPROCESAMIENTO PARA LSTM")
+print("FASE 2: PREPROCESAMIENTO PARA LSTM")
 print("="*70)
 
 # Paso 1: Normalizar datos
 datos_normalizados, scaler = normalizar_datos(datos_ypf)
 
 # Paso 2: Visualizar normalización
-visualizar_normalizacion(datos_ypf, datos_normalizados)
+# visualizar_normalizacion(datos_ypf, datos_normalizados)
 
 # Paso 3: Crear secuencias temporales
 X, y = crear_secuencias_temporales(datos_normalizados, LOOKBACK_WINDOW)
@@ -366,8 +367,8 @@ X_train, X_val, X_test, y_train, y_val, y_test = dividir_datos(
     X, y, TRAIN_SPLIT, VAL_SPLIT, TEST_SPLIT
 )
 
-print(f"\n🎯 Preprocesamiento completado exitosamente!")
-print(f"✅ Datos listos para entrenar la LSTM")
+print(f"\nPreprocesamiento completado exitosamente!")
+print(f"Datos listos para entrenar la LSTM")
 
 # =============================================================================
 # FASE 3: CONSTRUCCIÓN DEL MODELO LSTM
@@ -391,7 +392,7 @@ def crear_modelo_lstm(input_shape,
     Returns:
         Modelo LSTM compilado y listo para entrenar
     """
-    print(f"\n🧠 Construyendo modelo LSTM...")
+    print(f"\nConstruyendo modelo LSTM...")
     print(f"   • Input shape: {input_shape}")
     print(f"   • LSTM units: {lstm_units}")
     print(f"   • Num layers: {num_layers}")
@@ -429,7 +430,7 @@ def crear_modelo_lstm(input_shape,
         metrics=['mae']
     )
     
-    print(f"✅ Modelo construido exitosamente")
+    print(f"Modelo construido exitosamente")
     return model
 
 def configurar_callbacks():
@@ -460,168 +461,102 @@ def visualizar_arquitectura_modelo(modelo):
     Args:
         modelo: Modelo LSTM compilado
     """
-    print("\n🎨 Creando visualizaciones de la arquitectura...")
+    # print("\nCreando visualizaciones de la arquitectura...")
     
-    # 1. Resumen textual del modelo
-    print("\n📋 Resumen de la arquitectura:")
-    modelo.summary()
+    # # 1. Resumen textual del modelo
+    # print("\nResumen de la arquitectura:")
+    # modelo.summary()
     
-    # 2. Visualización gráfica con plot_model
-    try:
-        from tensorflow.keras.utils import plot_model
-        import os
+    # # 2. Visualización gráfica con plot_model
+    # try:
+    #     from tensorflow.keras.utils import plot_model
+    #     import os
         
-        print("\n🖼️ Intentando crear diagrama de arquitectura...")
+    #     print("\nIntentando crear diagrama de arquitectura...")
         
-        # Crear el gráfico de arquitectura
-        plot_model(
-            modelo, 
-            to_file='lstm_architecture.png',
-            show_shapes=True,
-            show_layer_names=True,
-            rankdir='TB',  # Top to Bottom
-            expand_nested=True,
-            dpi=150
-        )
+    #     # Crear el gráfico de arquitectura
+    #     plot_model(
+    #         modelo, 
+    #         to_file='lstm_architecture.png',
+    #         show_shapes=True,
+    #         show_layer_names=True,
+    #         rankdir='TB',  # Top to Bottom
+    #         expand_nested=True,
+    #         dpi=150
+    #     )
         
-        if os.path.exists('lstm_architecture.png'):
-            print("✅ Diagrama de arquitectura guardado como 'lstm_architecture.png'")
-            print("🔍 Puedes abrir el archivo para ver la arquitectura gráfica")
-        else:
-            print("❌ No se pudo crear el archivo de diagrama")
+    #     if os.path.exists('lstm_architecture.png'):
+    #         print("Diagrama de arquitectura guardado como 'lstm_architecture.png'")
+    #         print("Puedes abrir el archivo para ver la arquitectura grafica")
+    #     else:
+    #         print("No se pudo crear el archivo de diagrama")
         
-    except ImportError as e:
-        print("⚠️ Para visualización gráfica automática, instala:")
-        print("   pip install pydot")
-        print("   Y descarga graphviz desde: https://graphviz.gitlab.io/download/")
-        print(f"   Error: {str(e)}")
-    except Exception as e:
-        print(f"❌ Error al crear diagrama: {str(e)}")
-        print("🔄 Continuando con visualización manual...")
+    # except ImportError as e:
+    #     print("Para visualizacion grafica automatica, instala:")
+    #     print("   pip install pydot")
+    #     print("   Y descarga graphviz desde: https://graphviz.gitlab.io/download/")
+    #     print(f"   Error: {str(e)}")
+    # except Exception as e:
+    #     print(f"Error al crear diagrama: {str(e)}")
+    #     print("Continuando con visualizacion manual...")
     
-    # 3. Visualización manual de la arquitectura
-    visualizar_arquitectura_manual(modelo)
+    # # 3. Visualización manual de la arquitectura
+    # visualizar_arquitectura_manual(modelo)
+    pass
 
 def visualizar_arquitectura_manual(modelo):
     """
     Crea una visualización manual e intuitiva de la arquitectura LSTM
     """
-    print("\n🧠 Arquitectura LSTM visualizada:")
-    print("="*60)
+    # print("\nArquitectura LSTM visualizada:")
+    # print("="*60)
     
-    fig, ax = plt.subplots(figsize=(14, 10))
+    # fig, ax = plt.subplots(figsize=(14, 10))
     
-    # Configurar el gráfico
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 8)
-    ax.axis('off')
+    # # Configurar el gráfico
+    # ax.set_xlim(0, 10)
+    # ax.set_ylim(0, 8)
+    # ax.axis('off')
     
-    # Título
-    ax.text(5, 7.5, 'Arquitectura LSTM para Predicción de YPF', 
-            fontsize=16, fontweight='bold', ha='center')
+    # # Título
+    # ax.text(5, 7.5, 'Arquitectura LSTM para Predicción de YPF', 
+    #         fontsize=16, fontweight='bold', ha='center')
     
-    # 1. Datos de entrada
-    entrada = plt.Rectangle((0.5, 6), 2, 0.8, fill=True, 
-                           facecolor='lightblue', edgecolor='black', linewidth=2)
-    ax.add_patch(entrada)
-    ax.text(1.5, 6.4, 'ENTRADA\n(20 días, 1 feature)', 
-            ha='center', va='center', fontsize=10, fontweight='bold')
+    # # [Todo el código de visualización está comentado]
+    # # ...
     
-    # 2. Primera capa LSTM
-    lstm1 = plt.Rectangle((0.5, 4.5), 2, 1, fill=True, 
-                         facecolor='lightgreen', edgecolor='black', linewidth=2)
-    ax.add_patch(lstm1)
-    ax.text(1.5, 5, 'LSTM Layer 1\n(50 unidades)\nMemoria temporal', 
-            ha='center', va='center', fontsize=9, fontweight='bold')
-    
-    # 3. Dropout 1
-    dropout1 = plt.Rectangle((3, 4.5), 1.5, 1, fill=True, 
-                            facecolor='orange', edgecolor='black', linewidth=2)
-    ax.add_patch(dropout1)
-    ax.text(3.75, 5, 'Dropout\n(20%)\nRegularización', 
-            ha='center', va='center', fontsize=9, fontweight='bold')
-    
-    # 4. Segunda capa LSTM
-    lstm2 = plt.Rectangle((0.5, 3), 2, 1, fill=True, 
-                         facecolor='lightgreen', edgecolor='black', linewidth=2)
-    ax.add_patch(lstm2)
-    ax.text(1.5, 3.5, 'LSTM Layer 2\n(50 unidades)\nPatrones complejos', 
-            ha='center', va='center', fontsize=9, fontweight='bold')
-    
-    # 5. Dropout 2
-    dropout2 = plt.Rectangle((3, 3), 1.5, 1, fill=True, 
-                            facecolor='orange', edgecolor='black', linewidth=2)
-    ax.add_patch(dropout2)
-    ax.text(3.75, 3.5, 'Dropout\n(20%)\nRegularización', 
-            ha='center', va='center', fontsize=9, fontweight='bold')
-    
-    # 6. Capa densa
-    dense = plt.Rectangle((0.5, 1.5), 2, 1, fill=True, 
-                         facecolor='lightcoral', edgecolor='black', linewidth=2)
-    ax.add_patch(dense)
-    ax.text(1.5, 2, 'Dense Layer\n(1 neurona)\nPredicción final', 
-            ha='center', va='center', fontsize=9, fontweight='bold')
-    
-    # 7. Salida
-    salida = plt.Rectangle((0.5, 0.2), 2, 0.8, fill=True, 
-                          facecolor='yellow', edgecolor='black', linewidth=2)
-    ax.add_patch(salida)
-    ax.text(1.5, 0.6, 'SALIDA\nPrecio predicho\n(normalizado)', 
-            ha='center', va='center', fontsize=10, fontweight='bold')
-    
-    # Flechas de flujo
-    arrow_props = dict(arrowstyle='->', lw=2, color='black')
-    ax.annotate('', xy=(1.5, 4.5), xytext=(1.5, 5.8), arrowprops=arrow_props)
-    ax.annotate('', xy=(1.5, 3), xytext=(1.5, 4.5), arrowprops=arrow_props)
-    ax.annotate('', xy=(1.5, 1.5), xytext=(1.5, 3), arrowprops=arrow_props)
-    ax.annotate('', xy=(1.5, 0.2), xytext=(1.5, 1.5), arrowprops=arrow_props)
-    
-    # Explicaciones laterales
-    ax.text(6, 6, '📊 FLUJO DE DATOS', fontsize=12, fontweight='bold')
-    ax.text(6, 5.5, '1. Entrada: 20 días de precios normalizados', fontsize=10)
-    ax.text(6, 5.2, '2. LSTM 1: Aprende patrones temporales básicos', fontsize=10)
-    ax.text(6, 4.9, '3. Dropout: Previene overfitting', fontsize=10)
-    ax.text(6, 4.6, '4. LSTM 2: Aprende patrones más complejos', fontsize=10)
-    ax.text(6, 4.3, '5. Dropout: Más regularización', fontsize=10)
-    ax.text(6, 4.0, '6. Dense: Convierte a predicción numérica', fontsize=10)
-    ax.text(6, 3.7, '7. Salida: Precio del día siguiente', fontsize=10)
-    
-    ax.text(6, 3, '🧠 CONCEPTOS CLAVE', fontsize=12, fontweight='bold')
-    ax.text(6, 2.5, '• LSTM: Memoria de largo y corto plazo', fontsize=10)
-    ax.text(6, 2.2, '• Dropout: "Apaga" neuronas aleatoriamente', fontsize=10)
-    ax.text(6, 1.9, '• Secuencial: Información fluye hacia adelante', fontsize=10)
-    ax.text(6, 1.6, '• 50 unidades: Balance capacidad/eficiencia', fontsize=10)
-    
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
+    pass
 
 def mostrar_parametros_modelo(modelo):
     """
     Muestra información detallada sobre los parámetros del modelo
     """
-    print("\n📊 Análisis de parámetros del modelo:")
-    print("="*50)
+    # print("\nAnalisis de parametros del modelo:")
+    # print("="*50)
     
-    total_params = modelo.count_params()
-    trainable_params = sum([tf.keras.backend.count_params(w) for w in modelo.trainable_weights])
+    # total_params = modelo.count_params()
+    # trainable_params = sum([tf.keras.backend.count_params(w) for w in modelo.trainable_weights])
     
-    print(f"🔢 Total de parámetros: {total_params:,}")
-    print(f"🎯 Parámetros entrenables: {trainable_params:,}")
-    print(f"🔒 Parámetros no entrenables: {total_params - trainable_params:,}")
+    # print(f"Total de parametros: {total_params:,}")
+    # print(f"Parametros entrenables: {trainable_params:,}")
+    # print(f"Parametros no entrenables: {total_params - trainable_params:,}")
     
-    # Desglose por capa
-    print(f"\n📋 Desglose por capas:")
-    for i, layer in enumerate(modelo.layers):
-        layer_type = type(layer).__name__
-        params = layer.count_params()
-        trainable = sum([tf.keras.backend.count_params(w) for w in layer.trainable_weights])
-        non_trainable = params - trainable
+    # # Desglose por capa
+    # print(f"\nDesglose por capas:")
+    # for i, layer in enumerate(modelo.layers):
+    #     layer_type = type(layer).__name__
+    #     params = layer.count_params()
+    #     trainable = sum([tf.keras.backend.count_params(w) for w in layer.trainable_weights])
+    #     non_trainable = params - trainable
         
-        print(f"   • Capa {i+1} ({layer_type}): {params:,} parámetros")
-        print(f"     - Entrenables: {trainable:,}")
-        print(f"     - No entrenables: {non_trainable:,}")
+    #     print(f"   • Capa {i+1} ({layer_type}): {params:,} parametros")
+    #     print(f"     - Entrenables: {trainable:,}")
+    #     print(f"     - No entrenables: {non_trainable:,}")
     
-    print("\n✅ Análisis de parámetros completado")
+    # print("\nAnalisis de parametros completado")
+    pass
 
 
 # =============================================================================
@@ -644,7 +579,7 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
     Returns:
         Historial del entrenamiento (historial de pérdidas y métricas)
     """
-    print("\n🚀 Iniciando entrenamiento del modelo LSTM...")
+    print("\nIniciando entrenamiento del modelo LSTM...")
     
     # Entrenar modelo
     historial = modelo.fit(
@@ -656,7 +591,7 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
         verbose=2
     )
     
-    print("✅ Entrenamiento completado")
+    print("Entrenamiento completado")
     return historial
 
 def graficar_historial(historial):
@@ -666,87 +601,25 @@ def graficar_historial(historial):
     Args:
         historial: Historial del entrenamiento (output de model.fit)
     """
-    print("\n📈 Graficando historial de entrenamiento...")
+    # print("\nGraficando historial de entrenamiento...")
     
-    try:
-        # Verificar que el historial existe y tiene datos
-        if not historial or not hasattr(historial, 'history'):
-            print("❌ Error: Historial vacío o inválido")
-            return
+    # try:
+    #     # Verificar que el historial existe y tiene datos
+    #     if not historial or not hasattr(historial, 'history'):
+    #         print("Error: Historial vacío o inválido")
+    #         return
         
-        # Verificar que las claves existen
-        required_keys = ['loss', 'val_loss', 'mae', 'val_mae']
-        missing_keys = [key for key in required_keys if key not in historial.history]
+    #     # [Todo el código de visualización está comentado]
+    #     # ...
         
-        if missing_keys:
-            print(f"❌ Error: Faltan claves en historial: {missing_keys}")
-            print(f"   Claves disponibles: {list(historial.history.keys())}")
-            return
-        
-        print("   ✓ Historial válido, creando gráficos...")
-        
-        # Configurar matplotlib para evitar problemas en Windows
-        plt.ioff()  # Desactivar modo interactivo
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-        
-        # Pérdida
-        epochs = range(1, len(historial.history['loss']) + 1)
-        ax1.plot(epochs, historial.history['loss'], label='Pérdida (train)', linewidth=2, color='blue')
-        ax1.plot(epochs, historial.history['val_loss'], label='Pérdida (val)', linewidth=2, color='red')
-        ax1.set_title('Historial de Pérdida', fontsize=14, fontweight='bold')
-        ax1.set_xlabel('Época')
-        ax1.set_ylabel('Pérdida (MSE)')
-        ax1.legend()
-        ax1.grid(True, alpha=0.3)
-        
-        # Métrica (MAE)
-        ax2.plot(epochs, historial.history['mae'], label='MAE (train)', linewidth=2, color='blue')
-        ax2.plot(epochs, historial.history['val_mae'], label='MAE (val)', linewidth=2, color='red')
-        ax2.set_title('Historial de Métrica (MAE)', fontsize=14, fontweight='bold')
-        ax2.set_xlabel('Época')
-        ax2.set_ylabel('MAE')
-        ax2.legend()
-        ax2.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        plt.show()
-        plt.close(fig)  # Cerrar la figura explícitamente
-        
-        print("   ✅ Gráficas de historial completadas")
-        
-        # Mostrar resumen del entrenamiento
-        final_train_loss = float(historial.history['loss'][-1])
-        final_val_loss = float(historial.history['val_loss'][-1])
-        final_train_mae = float(historial.history['mae'][-1])
-        final_val_mae = float(historial.history['val_mae'][-1])
-        
-        print(f"\n📊 Resumen del entrenamiento:")
-        print(f"   • Épocas completadas: {len(historial.history['loss'])}")
-        print(f"   • Loss final (train): {final_train_loss:.4f}")
-        print(f"   • Loss final (val): {final_val_loss:.4f}")
-        print(f"   • MAE final (train): {final_train_mae:.4f}")
-        print(f"   • MAE final (val): {final_val_mae:.4f}")
-        
-        # Verificar overfitting
-        if final_val_loss > final_train_loss * 1.5:
-            print("   ⚠️ Posible overfitting detectado (val_loss >> train_loss)")
-        else:
-            print("   ✅ Modelo parece estar bien generalizado")
-            
-    except Exception as e:
-        print(f"❌ Error al crear gráficos: {str(e)}")
-        print("   🔄 Continuando con el siguiente paso...")
-        # Mostrar datos básicos sin gráfico
-        try:
-            if historial and hasattr(historial, 'history'):
-                epochs = len(historial.history.get('loss', []))
-                print(f"   📊 Entrenamiento completado: {epochs} épocas")
-        except:
-            pass
+    # except Exception as e:
+    #     print(f"Error al crear gráficos: {str(e)}")
+    #     print("Continuando con el siguiente paso...")
+    pass
 
 # Ejecutar entrenamiento
 print("\n" + "="*70)
-print("🚀 FASE 3: CONSTRUCCIÓN Y ENTRENAMIENTO DEL MODELO LSTM")
+print("FASE 3: CONSTRUCCION Y ENTRENAMIENTO DEL MODELO LSTM")
 print("="*70)
 
 # Crear modelo
@@ -762,23 +635,23 @@ historial_modelo = entrenar_modelo(
 )
 
 # Graficar historial de entrenamiento
-print("\n🔍 Verificando historial de entrenamiento...")
-try:
-    if 'historial_modelo' in locals() and historial_modelo is not None:
-        print("   ✅ Historial encontrado, procediendo a graficar...")
-        graficar_historial(historial_modelo)
-    else:
-        print("   ❌ No se encontró historial de entrenamiento")
-        print("   🔄 Continuando con el siguiente paso...")
-except Exception as e:
-    print(f"   ❌ Error en visualización de historial: {str(e)}")
-    print("   🔄 Continuando con el siguiente paso...")
+# print("\nVerificando historial de entrenamiento...")
+# try:
+#     if 'historial_modelo' in locals() and historial_modelo is not None:
+#         print("   Historial encontrado, procediendo a graficar...")
+#         graficar_historial(historial_modelo)
+#     else:
+#         print("   No se encontró historial de entrenamiento")
+#         print("   Continuando con el siguiente paso...")
+# except Exception as e:
+#     print(f"   Error en visualización de historial: {str(e)}")
+#     print("   Continuando con el siguiente paso...")
 
 # Visualizar arquitectura del modelo
-visualizar_arquitectura_modelo(modelo_lstm)
+# visualizar_arquitectura_modelo(modelo_lstm)
 
 # Mostrar parámetros del modelo
-mostrar_parametros_modelo(modelo_lstm)
+# mostrar_parametros_modelo(modelo_lstm)
 
 # =============================================================================
 # FASE 5: EVALUACIÓN Y PRUEBA DEL MODELO LSTM
@@ -795,7 +668,7 @@ def evaluar_modelo(modelo, X_test, y_test):
     Returns:
         dict: Pérdida y métricas del modelo en los datos de prueba
     """
-    print("\n🔍 Evaluando modelo con datos de prueba...")
+    print("\nEvaluando modelo con datos de prueba...")
     
     # Evaluar modelo
     resultados = modelo.evaluate(X_test, y_test, verbose=0)
@@ -803,7 +676,7 @@ def evaluar_modelo(modelo, X_test, y_test):
     # Crear diccionario de resultados
     metrica_resultados = dict(zip(modelo.metrics_names, resultados))
     
-    print(f"✅ Evaluación completada")
+    print(f"Evaluacion completada")
     for nombre, valor in metrica_resultados.items():
         print(f"   • {nombre}: {valor:.4f}")
     
@@ -820,39 +693,40 @@ def graficar_predicciones(modelo, X, y_real, scaler, titulo='Predicciones del Mo
         scaler: Objeto scaler para deshacer la normalización
         titulo: Título del gráfico
     """
-    print(f"\n📊 Graficando {titulo}...")
+    # print(f"\nGraficando {titulo}...")
     
-    # Hacer predicciones
-    y_pred = modelo.predict(X)
+    # # Hacer predicciones
+    # y_pred = modelo.predict(X)
     
-    # Invertir la normalización
-    y_real_invertido = scaler.inverse_transform(y_real.reshape(-1, 1))
-    y_pred_invertido = scaler.inverse_transform(y_pred)
+    # # Invertir la normalización
+    # y_real_invertido = scaler.inverse_transform(y_real.reshape(-1, 1))
+    # y_pred_invertido = scaler.inverse_transform(y_pred)
     
-    # Graficar
-    plt.figure(figsize=(14, 8))
-    plt.plot(y_real_invertido, label='Real', linewidth=2, color='blue')
-    plt.plot(y_pred_invertido, label='Predicción', linewidth=2, color='red')
-    plt.title(titulo, fontsize=16, fontweight='bold')
-    plt.xlabel('Días')
-    plt.ylabel('Precio (USD)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
+    # # Graficar
+    # plt.figure(figsize=(14, 8))
+    # plt.plot(y_real_invertido, label='Real', linewidth=2, color='blue')
+    # plt.plot(y_pred_invertido, label='Predicción', linewidth=2, color='red')
+    # plt.title(titulo, fontsize=16, fontweight='bold')
+    # plt.xlabel('Días')
+    # plt.ylabel('Precio (USD)')
+    # plt.legend()
+    # plt.grid(True, alpha=0.3)
     
-    plt.show()
+    # plt.show()
     
-    print("✅ Gráfica de predicciones completada")
+    # print("Gráfica de predicciones completada")
+    pass
 
 # Ejecutar evaluación y prueba
 print("\n" + "="*70)
-print("🚀 FASE 4: EVALUACIÓN Y PRUEBA DEL MODELO LSTM")
+print("FASE 4: EVALUACION Y PRUEBA DEL MODELO LSTM")
 print("="*70)
 
 # Evaluar modelo
 resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
 
 # Graficar predicciones
-graficar_predicciones(modelo_lstm, X_test, y_test, scaler, titulo='Predicciones en Datos de Prueba')
+# graficar_predicciones(modelo_lstm, X_test, y_test, scaler, titulo='Predicciones en Datos de Prueba')
 
 # =============================================================================
 # FASE 6: AJUSTE FINO Y OPTIMIZACIÓN DEL MODELO LSTM
@@ -874,7 +748,7 @@ def ajustar_modelo(modelo, X_train, y_train, X_val, y_val,
     Returns:
         Historial del ajuste (historial de pérdidas y métricas)
     """
-    print("\n🔧 Ajustando modelo LSTM...")
+    print("\nAjustando modelo LSTM...")
     
     # Ajustar modelo
     historial_ajuste = modelo.fit(
@@ -886,7 +760,7 @@ def ajustar_modelo(modelo, X_train, y_train, X_val, y_val,
         verbose=2
     )
     
-    print("✅ Ajuste completado")
+    print("Ajuste completado")
     return historial_ajuste
 
 # Ejecutar ajuste fino (opcional)
@@ -895,16 +769,16 @@ def ajustar_modelo(modelo, X_train, y_train, X_val, y_val,
 #     epochs=50, batch_size=16, callbacks=callbacks
 # )
 
-print("\n🎉 Proceso completado exitosamente!")
-print("🔑 Modelo LSTM listo para hacer predicciones")
+print("\nProceso completado exitosamente!")
+print("Modelo LSTM listo para hacer predicciones")
 
 # =============================================================================
-# VISUALIZACIONES ADICIONALES Y ANÁLISIS DETALLADO
+# VISUALIZACIONES ADICIONALES Y ANALISIS DETALLADO
 # =============================================================================
 
-print("\n" + "="*70)
-print("🎨 VISUALIZACIONES ADICIONALES Y ANÁLISIS DETALLADO")
-print("="*70)
+# print("\n" + "="*70)
+# print("VISUALIZACIONES ADICIONALES Y ANALISIS DETALLADO")
+# print("="*70)
 
 def crear_visualizacion_entrenamiento():
     """
@@ -1166,34 +1040,55 @@ def visualizar_secuencias_ejemplo(X, y, scaler, n_ejemplos=3):
     print("✅ Visualización de secuencias completada")
 
 # Ejecutar visualizaciones adicionales
-print("\n" + "="*70)
-print("🎯 EJECUTANDO VISUALIZACIONES ADICIONALES")
-print("="*70)
+# print("\n" + "="*70)
+# print("EJECUTANDO VISUALIZACIONES ADICIONALES")
+# print("="*70)
 
-# Visualizar historial de entrenamiento detallado
-if 'historial_modelo' in locals():
-    print("\n📈 Visualizando historial de entrenamiento detallado...")
-    plot_training_history(historial_modelo)
+# # Visualizar historial de entrenamiento detallado
+# if 'historial_modelo' in locals():
+#     print("\nVisualizando historial de entrenamiento detallado...")
+#     plot_training_history(historial_modelo)
 
-# Visualizaciones detalladas de predicciones
-print("\n🔍 Generando análisis detallado de predicciones...")
-metricas_detalladas = visualizar_predicciones_detalladas(
-    modelo_lstm, X_test, y_test, scaler, n_dias=50
-)
+# # Visualizaciones detalladas de predicciones
+# print("\nGenerando análisis detallado de predicciones...")
+# metricas_detalladas = visualizar_predicciones_detalladas(
+#     modelo_lstm, X_test, y_test, scaler, n_dias=50
+# )
 
-# Visualizar ejemplos de secuencias
-print("\n👁️ Mostrando ejemplos de secuencias temporales...")
-visualizar_secuencias_ejemplo(X_test, y_test, scaler, n_ejemplos=3)
+# # Visualizar ejemplos de secuencias
+# print("\nMostrando ejemplos de secuencias temporales...")
+# visualizar_secuencias_ejemplo(X_test, y_test, scaler, n_ejemplos=3)
 
-print(f"\n🎯 Análisis completo finalizado!")
-print(f"📊 Métricas principales:")
-for metrica, valor in metricas_detalladas.items():
-    if metrica in ['mae', 'rmse']:
-        print(f"   • {metrica.upper()}: ${valor:.2f}")
-    elif metrica == 'mape':
-        print(f"   • {metrica.upper()}: {valor:.2f}%")
-    else:
-        print(f"   • {metrica.upper()}: {valor:.4f}")
+# print(f"\nAnalisis completo finalizado!")
+# print(f"Metricas principales:")
+# for metrica, valor in metricas_detalladas.items():
+#     if metrica in ['mae', 'rmse']:
+#         print(f"   • {metrica.upper()}: ${valor:.2f}")
+#     elif metrica == 'mape':
+#         print(f"   • {metrica.upper()}: {valor:.2f}%")
+#     else:
+#         print(f"   • {metrica.upper()}: {valor:.4f}")
+
+# Generar métricas detalladas silenciosamente para usar en predicción final
+y_pred = modelo_lstm.predict(X_test, verbose=0)
+y_real_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+y_pred_original = scaler.inverse_transform(y_pred).flatten()
+
+mae = mean_absolute_error(y_real_original, y_pred_original)
+mse = mean_squared_error(y_real_original, y_pred_original)
+rmse = np.sqrt(mse)
+mape = np.mean(np.abs((y_real_original - y_pred_original) / y_real_original)) * 100
+correlation = np.corrcoef(y_real_original, y_pred_original)[0,1]
+r_squared = correlation ** 2
+
+metricas_detalladas = {
+    'mae': mae,
+    'mse': mse, 
+    'rmse': rmse,
+    'mape': mape,
+    'correlation': correlation,
+    'r_squared': r_squared
+}
 
 print(f"\n✅ Modelo LSTM completamente implementado y evaluado!")
 print(f"🔄 Próximo paso: Optimización con Algoritmos Genéticos")
@@ -1217,7 +1112,7 @@ def hacer_prediccion_final(modelo, datos_recientes, scaler, lookback_window=20):
         dict: Predicción detallada con contexto
     """
     print("\n" + "="*70)
-    print("🎯 PREDICCIÓN FINAL: ¿QUÉ PREDICE EL MODELO PARA YPF?")
+    print("PREDICCION FINAL: QUE PREDICE EL MODELO PARA YPF?")
     print("="*70)
     
     # Obtener los últimos datos disponibles
@@ -1225,10 +1120,10 @@ def hacer_prediccion_final(modelo, datos_recientes, scaler, lookback_window=20):
     precio_actual = float(ultimos_datos.iloc[-1])
     fecha_actual = ultimos_datos.index[-1].date()
     
-    print(f"\n📊 CONTEXTO ACTUAL:")
-    print(f"   • Fecha del último precio: {fecha_actual}")
+    print(f"\nCONTEXTO ACTUAL:")
+    print(f"   • Fecha del ultimo precio: {fecha_actual}")
     print(f"   • Precio actual de YPF: ${precio_actual:.2f}")
-    print(f"   • Ventana de análisis: {lookback_window} días anteriores")
+    print(f"   • Ventana de analisis: {lookback_window} dias anteriores")
     
     # Normalizar los últimos datos
     ultimos_normalizados = scaler.transform(ultimos_datos.values.reshape(-1, 1))
@@ -1248,27 +1143,27 @@ def hacer_prediccion_final(modelo, datos_recientes, scaler, lookback_window=20):
     
     # Determinar tendencia
     if variacion_porcentual > 2:
-        tendencia = "📈 FUERTE ALZA"
+        tendencia = "FUERTE ALZA"
         interpretacion = "El modelo predice un aumento significativo"
     elif variacion_porcentual > 0.5:
-        tendencia = "↗️ ALZA MODERADA"
+        tendencia = "ALZA MODERADA"
         interpretacion = "El modelo predice un aumento moderado"
     elif variacion_porcentual > -0.5:
-        tendencia = "➡️ ESTABLE"
+        tendencia = "ESTABLE"
         interpretacion = "El modelo predice estabilidad de precios"
     elif variacion_porcentual > -2:
-        tendencia = "↘️ BAJA MODERADA"
-        interpretacion = "El modelo predice una disminución moderada"
+        tendencia = "BAJA MODERADA"
+        interpretacion = "El modelo predice una disminucion moderada"
     else:
-        tendencia = "📉 FUERTE BAJA"
-        interpretacion = "El modelo predice una disminución significativa"
+        tendencia = "FUERTE BAJA"
+        interpretacion = "El modelo predice una disminucion significativa"
     
-    print(f"\n🔮 PREDICCIÓN PARA EL PRÓXIMO DÍA DE TRADING:")
+    print(f"\nPREDICCION PARA EL PROXIMO DIA DE TRADING:")
     print(f"   • Precio predicho: ${precio_predicho:.2f}")
-    print(f"   • Variación absoluta: ${variacion_absoluta:+.2f}")
-    print(f"   • Variación porcentual: {variacion_porcentual:+.2f}%")
+    print(f"   • Variacion absoluta: ${variacion_absoluta:+.2f}")
+    print(f"   • Variacion porcentual: {variacion_porcentual:+.2f}%")
     print(f"   • Tendencia: {tendencia}")
-    print(f"   • Interpretación: {interpretacion}")
+    print(f"   • Interpretacion: {interpretacion}")
     
     # Análisis de confianza basado en el rendimiento del modelo
     if 'metricas_detalladas' in globals():
@@ -1277,26 +1172,26 @@ def hacer_prediccion_final(modelo, datos_recientes, scaler, lookback_window=20):
         
         if mape < 5 and r_squared > 0.7:
             confianza = "ALTA"
-            confianza_emoji = "🟢"
+            confianza_emoji = "ALTA"
         elif mape < 10 and r_squared > 0.5:
             confianza = "MEDIA"
-            confianza_emoji = "🟡"
+            confianza_emoji = "MEDIA"
         else:
             confianza = "BAJA"
-            confianza_emoji = "🔴"
+            confianza_emoji = "BAJA"
         
-        print(f"\n🎯 NIVEL DE CONFIANZA: {confianza_emoji} {confianza}")
+        print(f"\nNIVEL DE CONFIANZA: {confianza_emoji}")
         print(f"   • MAPE del modelo: {mape:.2f}%")
-        print(f"   • R² del modelo: {r_squared:.4f}")
+        print(f"   • R2 del modelo: {r_squared:.4f}")
     
     # Mostrar contexto histórico reciente
-    print(f"\n📈 CONTEXTO DE LOS ÚLTIMOS 5 DÍAS:")
+    print(f"\nCONTEXTO DE LOS ULTIMOS 5 DIAS:")
     ultimos_5_dias = ultimos_datos.tail(5)
     for i in range(len(ultimos_5_dias)):
         fecha = ultimos_5_dias.index[i]
         precio = ultimos_5_dias.iloc[i]
         es_ultimo = i == len(ultimos_5_dias) - 1
-        emoji = "👉" if es_ultimo else "  "
+        emoji = ">>>" if es_ultimo else "   "
         # Manejar diferentes tipos de fecha
         if hasattr(fecha, 'date'):
             fecha_str = fecha.date()
@@ -1318,7 +1213,7 @@ def mostrar_escenarios_prediccion(prediccion_base, precio_actual):
     """
     Muestra diferentes escenarios basados en la predicción
     """
-    print(f"\n📋 ESCENARIOS DE INVERSIÓN:")
+    print(f"\nESCENARIOS DE INVERSION:")
     
     precio_predicho = prediccion_base['precio_predicho']
     variacion_pct = prediccion_base['variacion_porcentual']
@@ -1327,31 +1222,31 @@ def mostrar_escenarios_prediccion(prediccion_base, precio_actual):
     inversion_ejemplo = 10000  # $10,000 como ejemplo
     acciones_posibles = inversion_ejemplo / precio_actual
     
-    print(f"\n💰 Ejemplo con inversión de ${inversion_ejemplo:,.0f}:")
+    print(f"\nEjemplo con inversion de ${inversion_ejemplo:,.0f}:")
     print(f"   • Acciones que se pueden comprar: {acciones_posibles:.0f}")
     
     if variacion_pct > 0:
         ganancia_potencial = acciones_posibles * prediccion_base['variacion_absoluta']
         print(f"   • Ganancia potencial: ${ganancia_potencial:+.2f}")
         print(f"   • ROI esperado: {variacion_pct:+.2f}%")
-        print(f"   • 📈 Estrategia sugerida: COMPRAR")
+        print(f"   • Estrategia sugerida: COMPRAR")
     else:
         perdida_potencial = acciones_posibles * prediccion_base['variacion_absoluta']
-        print(f"   • Pérdida potencial: ${perdida_potencial:+.2f}")
+        print(f"   • Perdida potencial: ${perdida_potencial:+.2f}")
         print(f"   • ROI esperado: {variacion_pct:+.2f}%")
-        print(f"   • 📉 Estrategia sugerida: MANTENER o VENDER")
+        print(f"   • Estrategia sugerida: MANTENER o VENDER")
     
-    print(f"\n⚠️ DISCLAIMER:")
-    print(f"   • Esta es una predicción basada en datos históricos")
+    print(f"\nDISCLAIMER:")
+    print(f"   • Esta es una prediccion basada en datos historicos")
     print(f"   • Los mercados financieros son impredecibles")
     print(f"   • Siempre consulte con un asesor financiero")
-    print(f"   • No invierta más de lo que puede permitirse perder")
+    print(f"   • No invierta mas de lo que puede permitirse perder")
 
 def visualizar_prediccion_final(datos_historicos, prediccion, scaler):
     """
     Crea una visualización específica de la predicción final
     """
-    print(f"\n📊 Creando visualización de la predicción final...")
+    print(f"\nCreando visualizacion de la prediccion final...")
     
     # Preparar datos para visualización
     ultimos_30_dias = datos_historicos.tail(30)
@@ -1367,21 +1262,21 @@ def visualizar_prediccion_final(datos_historicos, prediccion, scaler):
     plt.figure(figsize=(14, 8))
     
     # Gráfico principal
-    plt.plot(fechas, precios, 'b-', linewidth=2, label='Precios Históricos', marker='o', markersize=4)
+    plt.plot(fechas, precios, 'b-', linewidth=2, label='Precios Historicos', marker='o', markersize=4)
     
     # Punto actual
     plt.plot(fechas[-1], precio_actual, 'go', markersize=10, label=f'Precio Actual: ${precio_actual:.2f}')
     
     # Predicción
     plt.plot(fecha_prediccion, precio_predicho, 'rs', markersize=12, 
-             label=f'Predicción: ${precio_predicho:.2f}')
+             label=f'Prediccion: ${precio_predicho:.2f}')
     
     # Línea conectora
     plt.plot([fechas[-1], fecha_prediccion], [precio_actual, precio_predicho], 
              'r--', alpha=0.7, linewidth=2)
     
     # Formateo
-    plt.title('YPF - Predicción para el Próximo Día de Trading', fontsize=16, fontweight='bold')
+    plt.title('YPF - Prediccion para el Proximo Dia de Trading', fontsize=16, fontweight='bold')
     plt.xlabel('Fecha', fontsize=12)
     plt.ylabel('Precio (USD)', fontsize=12)
     plt.legend(fontsize=11)
@@ -1392,7 +1287,7 @@ def visualizar_prediccion_final(datos_historicos, prediccion, scaler):
     variacion = prediccion['variacion_porcentual']
     color_texto = 'green' if variacion > 0 else 'red'
     plt.text(0.02, 0.98, 
-             f"Variación Predicha: {variacion:+.2f}%\n{prediccion['tendencia']}", 
+             f"Variacion Predicha: {variacion:+.2f}%\n{prediccion['tendencia']}", 
              transform=plt.gca().transAxes, fontsize=12, fontweight='bold',
              verticalalignment='top', color=color_texto,
              bbox=dict(boxstyle='round', facecolor='white', alpha=0.9))
@@ -1400,11 +1295,11 @@ def visualizar_prediccion_final(datos_historicos, prediccion, scaler):
     plt.tight_layout()
     plt.show()
     
-    print("✅ Visualización de predicción final completada")
+    print("Visualizacion de prediccion final completada")
 
-# EJECUTAR PREDICCIÓN FINAL
+# EJECUTAR PREDICCION FINAL
 print("\n" + "="*70)
-print("🚀 EJECUTANDO PREDICCIÓN FINAL PARA YPF")
+print("EJECUTANDO PREDICCION FINAL PARA YPF")
 print("="*70)
 
 # Hacer predicción para el próximo día
@@ -1418,35 +1313,35 @@ visualizar_prediccion_final(datos_ypf, prediccion_final, scaler)
 
 # RESUMEN EJECUTIVO FINAL
 print("\n" + "="*70)
-print("📋 RESUMEN EJECUTIVO - PREDICCIÓN LSTM PARA YPF")
+print("RESUMEN EJECUTIVO - PREDICCION LSTM PARA YPF")
 print("="*70)
 
 print(f"""
-🎯 PREDICCIÓN PRINCIPAL:
-   El modelo LSTM predice que YPF cotizará a ${prediccion_final['precio_predicho']:.2f} 
-   en el próximo día de trading, representando una variación de {prediccion_final['variacion_porcentual']:+.2f}%
+PREDICCION PRINCIPAL:
+   El modelo LSTM predice que YPF cotizara a ${prediccion_final['precio_predicho']:.2f} 
+   en el proximo dia de trading, representando una variacion de {prediccion_final['variacion_porcentual']:+.2f}%
 
-📊 FUNDAMENTO TÉCNICO:
-   • Modelo entrenado con {NUM_DATOS} puntos históricos
+FUNDAMENTO TECNICO:
+   • Modelo entrenado con {NUM_DATOS} puntos historicos
    • Arquitectura: 2 capas LSTM con 50 unidades cada una
-   • Ventana temporal: {LOOKBACK_WINDOW} días de historia para predicción
-   • Accuracy del modelo: R² = {metricas_detalladas.get('r_squared', 0):.4f}
+   • Ventana temporal: {LOOKBACK_WINDOW} dias de historia para prediccion
+   • Accuracy del modelo: R2 = {metricas_detalladas.get('r_squared', 0):.4f}
 
-💡 INTERPRETACIÓN:
+INTERPRETACION:
    {prediccion_final['interpretacion']}
 
-⚠️ RIESGOS Y LIMITACIONES:
-   • Modelo basado en patrones históricos
+RIESGOS Y LIMITACIONES:
+   • Modelo basado en patrones historicos
    • No considera eventos fundamentales o noticias
    • Mercados pueden ser impredecibles en el corto plazo
    • Error promedio del modelo: ±{metricas_detalladas.get('mape', 0):.1f}%
 
-🔮 PRÓXIMOS PASOS:
-   ✅ Modelo LSTM base implementado
-   🔄 Pendiente: Optimización con Algoritmos Genéticos
-   🎯 Objetivo: Mejorar precisión mediante evolución de hiperparámetros
+PROXIMOS PASOS:
+   * Modelo LSTM base implementado
+   * Pendiente: Optimizacion con Algoritmos Geneticos
+   * Objetivo: Mejorar precision mediante evolucion de hiperparametros
 """)
 
-#print(f"\n🎉 IMPLEMENTACIÓN LSTM COMPLETADA CON PREDICCIÓN CLARA!")
-#print(f"🚀 Sistema listo para la fase de optimización con Algoritmos Genéticos")
+print(f"\nIMPLEMENTACION LSTM COMPLETADA CON PREDICCION CLARA!")
+print(f"Sistema listo para la fase de optimizacion con Algoritmos Geneticos")
 
