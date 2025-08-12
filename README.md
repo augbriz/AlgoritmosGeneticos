@@ -1,4 +1,4 @@
-<h1>
+<h1 align="center">
   Grupo N°8
 </h1>
 <h2>Integrantes del grupo:</h2>
