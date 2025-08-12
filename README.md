@@ -1,7 +1,7 @@
 <h1>
   Grupo N°8
 </h1>
-## Integrantes del grupo:
+<h2>Integrantes del grupo:</h2>
 
 - Brizio, Augusto	brizioaugusto@gmail.com		52479
 - Constante, Gonzalo   constante.gonzalo2@gmail.com 	52282  
