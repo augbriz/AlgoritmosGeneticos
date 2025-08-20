@@ -57,17 +57,8 @@ print(f"   • Division: {TRAIN_SPLIT:.0%} train, {VAL_SPLIT:.0%} val, {TEST_SPL
 # CARGA Y VISUALIZACIÓN DE DATOS
 
 
-def cargar_datos_ypf():
-    """
-    Carga los datos históricos de YPF usando la misma configuración
-    que en el análisis caótico para mantener consistencia
-    
-    Returns:
-        pd.Series: Serie temporal con los precios de cierre de YPF
-    """
-    print("\nDescargando datos de YPF...")
-    
-    # Descargar datos (igual que en YPF.py para mantener consistencia)
+def cargar_datos_ypf():    
+    # Descargar datos 
     data = yf.download(TICKER, start=START_DATE, end=END_DATE, progress=False)
     
     # Verificar que los datos se descargaron correctamente
@@ -88,98 +79,41 @@ def cargar_datos_ypf():
     return precios_cierre
 
 def visualizar_datos(precios):
-    """
-    Visualiza los datos cargados para verificar que todo esté correcto
+    print("\nCreando visualizacion de la serie temporal...")
     
-    Args:
-        precios (pd.Series): Serie temporal con los precios de cierre
-    """
-    # print("\nCreando visualizacion de la serie temporal...")
-    
-    # plt.figure(figsize=(14, 8))
-    
-    # # Gráfico principal
-    # plt.subplot(2, 1, 1)
-    # plt.plot(precios.index, precios.values, linewidth=0.8, color='blue', alpha=0.8)
-    # plt.title(f'Serie Temporal - {TICKER} (Últimos {len(precios)} días)', fontsize=16, fontweight='bold')
-    # plt.xlabel('Fecha', fontsize=12)
-    # plt.ylabel('Precio de Cierre (USD)', fontsize=12)
-    # plt.grid(True, alpha=0.3)
-    # plt.xticks(rotation=45)
-    
-    # # Agregar información estadística en el gráfico
-    # stats_text = f'Datos: {len(precios)} puntos\nÚltimo precio: ${float(precios.iloc[-1]):.2f}\nPromedio: ${float(precios.mean()):.2f}'
-    # plt.text(0.02, 0.98, stats_text, 
-    #          transform=plt.gca().transAxes, fontsize=10, 
-    #          verticalalignment='top', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
-    
-    # # Gráfico de distribución de precios
-    # plt.subplot(2, 1, 2)
-    # plt.hist(precios.values, bins=50, alpha=0.7, color='skyblue', edgecolor='black')
-    # plt.title('Distribución de Precios', fontsize=14)
-    # plt.xlabel('Precio (USD)', fontsize=12)
-    # plt.ylabel('Frecuencia', fontsize=12)
-    # plt.grid(True, alpha=0.3)
-    
-    # plt.tight_layout()
-    # plt.show()
+    plt.figure(figsize=(14, 8))
     
 
-
-def analizar_datos_basico(precios):
-    """
-    Análisis básico de los datos para entender mejor la serie temporal
+    plt.subplot(2, 1, 1)
+    plt.plot(precios.index, precios.values, linewidth=0.8, color='blue', alpha=0.8)
+    plt.title(f'Serie Temporal - {TICKER} (Últimos {len(precios)} días)', fontsize=16, fontweight='bold')
+    plt.xlabel('Fecha', fontsize=12)
+    plt.ylabel('Precio de Cierre (USD)', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.xticks(rotation=45)
     
-    Args:
-        precios (pd.Series): Serie temporal con los precios de cierre
-    """
-    # print("\nAnalisis basico de la serie temporal:")
     
-    # # Estadísticas descriptivas
-    # print(f"\nEstadisticas descriptivas:")
-    # print(f"   • Cuenta: {len(precios)}")
-    # print(f"   • Media: ${float(precios.mean()):.2f}")
-    # print(f"   • Mediana: ${float(precios.median()):.2f}")
-    # print(f"   • Desviacion estandar: ${float(precios.std()):.2f}")
-    # print(f"   • Minimo: ${float(precios.min()):.2f}")
-    # print(f"   • Maximo: ${float(precios.max()):.2f}")
+    stats_text = f'Datos: {len(precios)} puntos\nÚltimo precio: ${float(precios.iloc[-1]):.2f}\nPromedio: ${float(precios.mean()):.2f}'
+    plt.text(0.02, 0.98, stats_text, 
+              transform=plt.gca().transAxes, fontsize=10, 
+             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
     
-    # # Análisis de tendencia básico
-    # precio_inicial = float(precios.iloc[0])
-    # precio_final = float(precios.iloc[-1])
-    # variacion_total = ((precio_final - precio_inicial) / precio_inicial) * 100
+    # distribución de precios
+    plt.subplot(2, 1, 2)
+    plt.hist(precios.values, bins=50, alpha=0.7, color='skyblue', edgecolor='black')
+    plt.title('Distribución de Precios', fontsize=14)
+    plt.xlabel('Precio (USD)', fontsize=12)
+    plt.ylabel('Frecuencia', fontsize=12)
+    plt.grid(True, alpha=0.3)
     
-    # print(f"\nAnalisis de tendencia:")
-    # print(f"   • Precio inicial: ${precio_inicial:.2f}")
-    # print(f"   • Precio final: ${precio_final:.2f}")
-    # print(f"   • Variacion total: {variacion_total:+.2f}%")
-    
-    # # Análisis de volatilidad básico
-    # returns = precios.pct_change().dropna()
-    # volatilidad_diaria = float(returns.std())
-    # volatilidad_anualizada = volatilidad_diaria * np.sqrt(252)  # 252 días de trading por año
-    
-    # print(f"\nAnalisis de volatilidad:")
-    # print(f"   • Volatilidad diaria: {volatilidad_diaria:.4f}")
-    # print(f"   • Volatilidad anualizada: {volatilidad_anualizada:.4f} ({volatilidad_anualizada*100:.2f}%)")
-    
-    return {
-        'estadisticas': precios.describe(),
-        'variacion_total': variacion_total,
-        'volatilidad_anualizada': volatilidad_anualizada,
-        'returns': returns
-    }
-
-# Ejecutar la carga y análisis de datos
-print("\n" + "="*70)
-print("FASE 1: CARGA Y EXPLORACION DE DATOS")
-print("="*70)
-
+    plt.tight_layout()
+    plt.show()
+                                                                            
 # Cargar datos
 datos_ypf = cargar_datos_ypf()
 
 # Visualizar datos
-# visualizar_datos(datos_ypf)
+visualizar_datos(datos_ypf)
 
 # Análisis básico
 # analisis_basico = analizar_datos_basico(datos_ypf)
@@ -202,9 +136,7 @@ def normalizar_datos(serie):
     
     Returns:
         tuple: (datos_normalizados, scaler_objeto)
-    """
-    print("\nNormalizando datos a escala 0-1...")
-    
+    """    
     # Crear el escalador MinMax (0-1)
     scaler = MinMaxScaler(feature_range=(0, 1))
     
@@ -243,11 +175,7 @@ def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=1):
     
     Returns:
         tuple: (X, y) arrays para entrenamiento
-    """
-    print(f"\nCreando secuencias temporales...")
-    print(f"   • Ventana temporal: {lookback_window} dias")
-    print(f"   • Horizonte de prediccion: {prediction_horizon} dia(s)")
-    
+    """    
     X, y = [], []
     
     # Crear ventanas deslizantes
@@ -277,7 +205,7 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     """
     Divide los datos en entrenamiento, validación y prueba
     
-    ¡IMPORTANTE! Para series temporales NO usamos división aleatoria
+    Para series temporales NO usamos división aleatoria
     Mantenemos el orden temporal:
     - Train: datos más antiguos
     - Validation: datos intermedios  
@@ -290,7 +218,7 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     Returns:
         tuple: (X_train, X_val, X_test, y_train, y_val, y_test)
     """
-    print(f"\nDividiendo datos temporalmente...")
+
     
     # Validar que las proporciones sumen 1
     if abs(train_split + val_split + test_split - 1.0) > 0.001:
@@ -316,62 +244,75 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     print(f"   • Validacion: {len(X_val)} secuencias ({len(X_val)/n_samples:.1%})")
     print(f"   • Prueba: {len(X_test)} secuencias ({len(X_test)/n_samples:.1%})")
     
+    
+    plt.figure(figsize=(14,6))
+    plt.plot(range(len(y)), y, label='Serie completa', color='lightgray')
+
+    plt.plot(range(0, train_end), y[:train_end], label='Train', color='blue')
+    plt.plot(range(train_end, val_end), y[train_end:val_end], label='Validation', color='orange')
+    plt.plot(range(val_end, n_samples), y[val_end:], label='Test', color='green')
+
+    plt.title("División Train / Validation / Test")
+    plt.xlabel("Índice temporal")
+    plt.ylabel("Valor normalizado")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.show()
+
+    
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 def visualizar_normalizacion(datos_originales, datos_normalizados):
     """
     Visualiza el efecto de la normalización
     """
-    # print("\nCreando visualizacion de la normalizacion...")
+    print("\nCreando visualizacion de la normalizacion...")
     
-    # plt.figure(figsize=(15, 6))
+    plt.figure(figsize=(15, 6))
     
-    # # Datos originales
-    # plt.subplot(1, 2, 1)
-    # plt.plot(datos_originales.values, color='blue', alpha=0.8)
-    # plt.title('Datos Originales', fontsize=14, fontweight='bold')
-    # plt.ylabel('Precio (USD)', fontsize=12)
-    # plt.xlabel('Tiempo (días)', fontsize=12)
-    # plt.grid(True, alpha=0.3)
+    # Datos originales
+    plt.subplot(1, 2, 1)
+    plt.plot(datos_originales.values, color='blue', alpha=0.8)
+    plt.title('Datos Originales', fontsize=14, fontweight='bold')
+    plt.ylabel('Precio (USD)', fontsize=12)
+    plt.xlabel('Tiempo (días)', fontsize=12)
+    plt.grid(True, alpha=0.3)
     
     # # Datos normalizados
-    # plt.subplot(1, 2, 2)
-    # plt.plot(datos_normalizados, color='red', alpha=0.8)
-    # plt.title('Datos Normalizados (0-1)', fontsize=14, fontweight='bold')
-    # plt.ylabel('Valor Normalizado', fontsize=12)
-    # plt.xlabel('Tiempo (días)', fontsize=12)
-    # plt.grid(True, alpha=0.3)
+    plt.subplot(1, 2, 2)
+    plt.plot(datos_normalizados, color='red', alpha=0.8)
+    plt.title('Datos Normalizados (0-1)', fontsize=14, fontweight='bold')
+    plt.ylabel('Valor Normalizado', fontsize=12)
+    plt.xlabel('Tiempo (días)', fontsize=12)
+    plt.grid(True, alpha=0.3)
     
-    # plt.tight_layout()
-    # plt.show()
-    
-    # print("Visualizacion de normalizacion completada")
-    pass
+    plt.tight_layout()
+    plt.show()
+
 
 # Ejecutar preprocesamiento
-print("\n" + "="*70)
-print("FASE 2: PREPROCESAMIENTO PARA LSTM")
-print("="*70)
 
-# Paso 1: Normalizar datos
-datos_normalizados, scaler = normalizar_datos(datos_ypf)
+# Calcular cortes sobre la SERIE CRUDA (sin normalizar)
+n_raw = len(datos_ypf)
+train_end_raw = int(n_raw * TRAIN_SPLIT)
+val_end_raw   = int(n_raw * (TRAIN_SPLIT + VAL_SPLIT))
 
-# Paso 2: Visualizar normalización
-# visualizar_normalizacion(datos_ypf, datos_normalizados)
+# Ajustar scaler SOLO con el tramo de entrenamiento
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaler.fit(datos_ypf.iloc[:train_end_raw].values.reshape(-1, 1))
 
-# Paso 3: Crear secuencias temporales
+# Transformar toda la serie usando ese scaler
+datos_normalizados = scaler.transform(datos_ypf.values.reshape(-1, 1)).flatten()
+
+# Crear secuencias sobre la serie ya normalizada
 X, y = crear_secuencias_temporales(datos_normalizados, LOOKBACK_WINDOW)
 
-# Paso 4: Dividir datos
+# Dividir secuencias cronológicamente 
 X_train, X_val, X_test, y_train, y_val, y_test = dividir_datos(
     X, y, TRAIN_SPLIT, VAL_SPLIT, TEST_SPLIT
 )
-
-print(f"\nPreprocesamiento completado exitosamente!")
-print(f"Datos listos para entrenar la LSTM")
-
 # =============================================================================
-# FASE 3: CONSTRUCCIÓN DEL MODELO LSTM
+# CONSTRUCCIÓN DEL MODELO LSTM
 # =============================================================================
 
 def crear_modelo_lstm(input_shape, 
@@ -392,7 +333,7 @@ def crear_modelo_lstm(input_shape,
     Returns:
         Modelo LSTM compilado y listo para entrenar
     """
-    print(f"\nConstruyendo modelo LSTM...")
+    print(f"\n Hiperparametros:")
     print(f"   • Input shape: {input_shape}")
     print(f"   • LSTM units: {lstm_units}")
     print(f"   • Num layers: {num_layers}")
@@ -427,7 +368,7 @@ def crear_modelo_lstm(input_shape,
     model.compile(
         optimizer=Adam(learning_rate=learning_rate),
         loss='mse',
-        metrics=['mae']
+        metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')]
     )
     
     print(f"Modelo construido exitosamente")
@@ -453,81 +394,6 @@ def configurar_callbacks():
         )
     ]
     return callbacks
-
-def visualizar_arquitectura_modelo(modelo):
-    """
-    Crea visualizaciones intuitivas de la arquitectura LSTM
-    
-    Args:
-        modelo: Modelo LSTM compilado
-    """
-    # print("\nCreando visualizaciones de la arquitectura...")
-    
-    # # 1. Resumen textual del modelo
-    # print("\nResumen de la arquitectura:")
-    # modelo.summary()
-    
-    # # 2. Visualización gráfica con plot_model
-    # try:
-    #     from tensorflow.keras.utils import plot_model
-    #     import os
-        
-    #     print("\nIntentando crear diagrama de arquitectura...")
-        
-    #     # Crear el gráfico de arquitectura
-    #     plot_model(
-    #         modelo, 
-    #         to_file='lstm_architecture.png',
-    #         show_shapes=True,
-    #         show_layer_names=True,
-    #         rankdir='TB',  # Top to Bottom
-    #         expand_nested=True,
-    #         dpi=150
-    #     )
-        
-    #     if os.path.exists('lstm_architecture.png'):
-    #         print("Diagrama de arquitectura guardado como 'lstm_architecture.png'")
-    #         print("Puedes abrir el archivo para ver la arquitectura grafica")
-    #     else:
-    #         print("No se pudo crear el archivo de diagrama")
-        
-    # except ImportError as e:
-    #     print("Para visualizacion grafica automatica, instala:")
-    #     print("   pip install pydot")
-    #     print("   Y descarga graphviz desde: https://graphviz.gitlab.io/download/")
-    #     print(f"   Error: {str(e)}")
-    # except Exception as e:
-    #     print(f"Error al crear diagrama: {str(e)}")
-    #     print("Continuando con visualizacion manual...")
-    
-    # # 3. Visualización manual de la arquitectura
-    # visualizar_arquitectura_manual(modelo)
-    pass
-
-def visualizar_arquitectura_manual(modelo):
-    """
-    Crea una visualización manual e intuitiva de la arquitectura LSTM
-    """
-    # print("\nArquitectura LSTM visualizada:")
-    # print("="*60)
-    
-    # fig, ax = plt.subplots(figsize=(14, 10))
-    
-    # # Configurar el gráfico
-    # ax.set_xlim(0, 10)
-    # ax.set_ylim(0, 8)
-    # ax.axis('off')
-    
-    # # Título
-    # ax.text(5, 7.5, 'Arquitectura LSTM para Predicción de YPF', 
-    #         fontsize=16, fontweight='bold', ha='center')
-    
-    # # [Todo el código de visualización está comentado]
-    # # ...
-    
-    # plt.tight_layout()
-    # plt.show()
-    pass
 
 def mostrar_parametros_modelo(modelo):
     """
@@ -560,7 +426,7 @@ def mostrar_parametros_modelo(modelo):
 
 
 # =============================================================================
-# FASE 4: ENTRENAMIENTO DEL MODELO LSTM
+# ENTRENAMIENTO DEL MODELO LSTM
 # =============================================================================
 
 def entrenar_modelo(modelo, X_train, y_train, X_val, y_val, 
@@ -588,39 +454,12 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
         epochs=epochs,
         batch_size=batch_size,
         callbacks=callbacks,
+        shuffle=False, 
         verbose=2
     )
     
     print("Entrenamiento completado")
     return historial
-
-def graficar_historial(historial):
-    """
-    Grafica el historial de entrenamiento (pérdida y métrica)
-    
-    Args:
-        historial: Historial del entrenamiento (output de model.fit)
-    """
-    # print("\nGraficando historial de entrenamiento...")
-    
-    # try:
-    #     # Verificar que el historial existe y tiene datos
-    #     if not historial or not hasattr(historial, 'history'):
-    #         print("Error: Historial vacío o inválido")
-    #         return
-        
-    #     # [Todo el código de visualización está comentado]
-    #     # ...
-        
-    # except Exception as e:
-    #     print(f"Error al crear gráficos: {str(e)}")
-    #     print("Continuando con el siguiente paso...")
-    pass
-
-# Ejecutar entrenamiento
-print("\n" + "="*70)
-print("FASE 3: CONSTRUCCION Y ENTRENAMIENTO DEL MODELO LSTM")
-print("="*70)
 
 # Crear modelo
 modelo_lstm = crear_modelo_lstm(input_shape=(LOOKBACK_WINDOW, 1))
@@ -633,25 +472,6 @@ historial_modelo = entrenar_modelo(
     modelo_lstm, X_train, y_train, X_val, y_val, 
     epochs=100, batch_size=32, callbacks=callbacks
 )
-
-# Graficar historial de entrenamiento
-# print("\nVerificando historial de entrenamiento...")
-# try:
-#     if 'historial_modelo' in locals() and historial_modelo is not None:
-#         print("   Historial encontrado, procediendo a graficar...")
-#         graficar_historial(historial_modelo)
-#     else:
-#         print("   No se encontró historial de entrenamiento")
-#         print("   Continuando con el siguiente paso...")
-# except Exception as e:
-#     print(f"   Error en visualización de historial: {str(e)}")
-#     print("   Continuando con el siguiente paso...")
-
-# Visualizar arquitectura del modelo
-# visualizar_arquitectura_modelo(modelo_lstm)
-
-# Mostrar parámetros del modelo
-# mostrar_parametros_modelo(modelo_lstm)
 
 # =============================================================================
 # FASE 5: EVALUACIÓN Y PRUEBA DEL MODELO LSTM
@@ -667,9 +487,7 @@ def evaluar_modelo(modelo, X_test, y_test):
     
     Returns:
         dict: Pérdida y métricas del modelo en los datos de prueba
-    """
-    print("\nEvaluando modelo con datos de prueba...")
-    
+    """    
     # Evaluar modelo
     resultados = modelo.evaluate(X_test, y_test, verbose=0)
     
@@ -693,655 +511,43 @@ def graficar_predicciones(modelo, X, y_real, scaler, titulo='Predicciones del Mo
         scaler: Objeto scaler para deshacer la normalización
         titulo: Título del gráfico
     """
-    # print(f"\nGraficando {titulo}...")
+    print(f"\nGraficando {titulo}...")
     
-    # # Hacer predicciones
-    # y_pred = modelo.predict(X)
     
-    # # Invertir la normalización
-    # y_real_invertido = scaler.inverse_transform(y_real.reshape(-1, 1))
-    # y_pred_invertido = scaler.inverse_transform(y_pred)
+    y_pred = modelo.predict(X)
     
-    # # Graficar
-    # plt.figure(figsize=(14, 8))
-    # plt.plot(y_real_invertido, label='Real', linewidth=2, color='blue')
-    # plt.plot(y_pred_invertido, label='Predicción', linewidth=2, color='red')
-    # plt.title(titulo, fontsize=16, fontweight='bold')
-    # plt.xlabel('Días')
-    # plt.ylabel('Precio (USD)')
-    # plt.legend()
-    # plt.grid(True, alpha=0.3)
+    # Invertir la normalización
+    y_real_invertido = scaler.inverse_transform(y_real.reshape(-1, 1))
+    y_pred_invertido = scaler.inverse_transform(y_pred)
     
-    # plt.show()
-    
-    # print("Gráfica de predicciones completada")
-    pass
+    def evaluar_rmse_en_usd(modelo, X_test, y_test, scaler):
+        y_pred = modelo.predict(X_test, verbose=0).ravel()
+        y_pred_usd = scaler.inverse_transform(y_pred.reshape(-1,1)).ravel()
+        y_test_usd = scaler.inverse_transform(y_test.reshape(-1,1)).ravel()
+        return np.sqrt(np.mean((y_test_usd - y_pred_usd)**2))
 
-# Ejecutar evaluación y prueba
-print("\n" + "="*70)
-print("FASE 4: EVALUACION Y PRUEBA DEL MODELO LSTM")
-print("="*70)
+    rmse_model_usd = evaluar_rmse_en_usd(modelo_lstm, X_test, y_test, scaler)
+    print(f"Modelo LSTM - RMSE en USD: {rmse_model_usd:.4f}")
+
+    
+    # Graficar
+    plt.figure(figsize=(14, 8))
+    plt.plot(y_real_invertido, label='Real', linewidth=2, color='blue')
+    plt.plot(y_pred_invertido, label='Predicción', linewidth=2, color='red')
+    plt.title(titulo, fontsize=16, fontweight='bold')
+    plt.xlabel('Días')
+    plt.ylabel('Precio (USD)')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    plt.show()
 
 # Evaluar modelo
 resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
 
 # Graficar predicciones
-# graficar_predicciones(modelo_lstm, X_test, y_test, scaler, titulo='Predicciones en Datos de Prueba')
+graficar_predicciones(modelo_lstm, X_test, y_test, scaler, titulo='Predicciones en Datos de Prueba')
 
-# =============================================================================
-# FASE 6: AJUSTE FINO Y OPTIMIZACIÓN DEL MODELO LSTM
-# =============================================================================
 
-def ajustar_modelo(modelo, X_train, y_train, X_val, y_val, 
-                  epochs=50, batch_size=16, callbacks=None):
-    """
-    Ajusta el modelo LSTM con nuevos parámetros de entrenamiento
-    
-    Args:
-        modelo: Modelo LSTM entrenado
-        X_train, y_train: Datos de entrenamiento
-        X_val, y_val: Datos de validación
-        epochs: Número de épocas para entrenar
-        batch_size: Tamaño del batch
-        callbacks: Lista de callbacks para el entrenamiento
-    
-    Returns:
-        Historial del ajuste (historial de pérdidas y métricas)
-    """
-    print("\nAjustando modelo LSTM...")
-    
-    # Ajustar modelo
-    historial_ajuste = modelo.fit(
-        X_train, y_train,
-        validation_data=(X_val, y_val),
-        epochs=epochs,
-        batch_size=batch_size,
-        callbacks=callbacks,
-        verbose=2
-    )
-    
-    print("Ajuste completado")
-    return historial_ajuste
 
-# Ejecutar ajuste fino (opcional)
-# historial_ajuste = ajustar_modelo(
-#     modelo_lstm, X_train, y_train, X_val, y_val, 
-#     epochs=50, batch_size=16, callbacks=callbacks
-# )
-
-print("\nProceso completado exitosamente!")
-print("Modelo LSTM listo para hacer predicciones")
-
-# =============================================================================
-# VISUALIZACIONES ADICIONALES Y ANALISIS DETALLADO
-# =============================================================================
-
-# print("\n" + "="*70)
-# print("VISUALIZACIONES ADICIONALES Y ANALISIS DETALLADO")
-# print("="*70)
-
-def crear_visualizacion_entrenamiento():
-    """
-    Prepara función para visualizar el proceso de entrenamiento
-    """
-    def plot_training_history(history):
-        """
-        Visualiza las métricas durante el entrenamiento
-        """
-        plt.figure(figsize=(15, 5))
-        
-        # Loss
-        plt.subplot(1, 3, 1)
-        plt.plot(history.history['loss'], label='Train Loss', color='blue')
-        plt.plot(history.history['val_loss'], label='Validation Loss', color='red')
-        plt.title('Pérdida durante entrenamiento')
-        plt.xlabel('Epoch')
-        plt.ylabel('MSE Loss')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        
-        # MAE
-        plt.subplot(1, 3, 2)
-        plt.plot(history.history['mae'], label='Train MAE', color='blue')
-        plt.plot(history.history['val_mae'], label='Validation MAE', color='red')
-        plt.title('Error Absoluto Medio')
-        plt.xlabel('Epoch')
-        plt.ylabel('MAE')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        
-        # Learning Rate (si está disponible)
-        plt.subplot(1, 3, 3)
-        if 'lr' in history.history:
-            plt.plot(history.history['lr'], label='Learning Rate', color='green')
-            plt.title('Tasa de Aprendizaje')
-            plt.xlabel('Epoch')
-            plt.ylabel('Learning Rate')
-            plt.yscale('log')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-        else:
-            plt.text(0.5, 0.5, 'Learning Rate\nno disponible', 
-                    ha='center', va='center', transform=plt.gca().transAxes)
-        
-        plt.tight_layout()
-        plt.show()
-    
-    return plot_training_history
-
-# Crear función de visualización de entrenamiento
-plot_training_history = crear_visualizacion_entrenamiento()
-
-# Visualizar historial de entrenamiento (si existe)
-if 'historial_modelo' in locals():
-    print("\n📈 Visualizando historial de entrenamiento...")
-    plot_training_history(historial_modelo)
-
-# Visualizaciones detalladas de predicciones
-def visualizar_predicciones_detalladas(modelo, X_test, y_test, scaler, n_dias=100):
-    """
-    Crea visualizaciones detalladas de las predicciones del modelo
-    
-    Args:
-        modelo: Modelo LSTM entrenado
-        X_test, y_test: Datos de prueba
-        scaler: Objeto MinMaxScaler para desnormalizar
-        n_dias: Número de días a mostrar en el gráfico detallado
-    """
-    print(f"\n🎨 Creando visualizaciones detalladas de predicciones...")
-    
-    # Hacer predicciones
-    y_pred = modelo.predict(X_test, verbose=0)
-    
-    # Desnormalizar
-    y_real_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-    y_pred_original = scaler.inverse_transform(y_pred).flatten()
-    
-    # Calcular métricas
-    mae = mean_absolute_error(y_real_original, y_pred_original)
-    mse = mean_squared_error(y_real_original, y_pred_original)
-    rmse = np.sqrt(mse)
-    mape = np.mean(np.abs((y_real_original - y_pred_original) / y_real_original)) * 100
-    
-    # Crear figura con múltiples subgráficos
-    fig = plt.figure(figsize=(16, 12))
-    
-    # 1. Gráfico general de predicciones
-    plt.subplot(3, 2, 1)
-    plt.plot(y_real_original, label='Valores Reales', color='blue', alpha=0.8)
-    plt.plot(y_pred_original, label='Predicciones', color='red', alpha=0.8)
-    plt.title('Predicciones vs Valores Reales - Vista General', fontsize=14, fontweight='bold')
-    plt.xlabel('Días')
-    plt.ylabel('Precio (USD)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    # Agregar métricas en el gráfico
-    metrics_text = f'MAE: ${mae:.2f}\nRMSE: ${rmse:.2f}\nMAPE: {mape:.2f}%'
-    plt.text(0.02, 0.98, metrics_text, transform=plt.gca().transAxes, 
-             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.8))
-    
-    # 2. Vista detallada (últimos n_dias)
-    plt.subplot(3, 2, 2)
-    dias_detalle = min(n_dias, len(y_real_original))
-    plt.plot(y_real_original[-dias_detalle:], label='Valores Reales', 
-             color='blue', marker='o', markersize=3, alpha=0.8)
-    plt.plot(y_pred_original[-dias_detalle:], label='Predicciones', 
-             color='red', marker='s', markersize=3, alpha=0.8)
-    plt.title(f'Vista Detallada - Últimos {dias_detalle} días', fontsize=14, fontweight='bold')
-    plt.xlabel('Días')
-    plt.ylabel('Precio (USD)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    # 3. Gráfico de dispersión (Real vs Predicho)
-    plt.subplot(3, 2, 3)
-    plt.scatter(y_real_original, y_pred_original, alpha=0.6, color='purple')
-    
-    # Línea de referencia perfecta (y=x)
-    min_val = min(y_real_original.min(), y_pred_original.min())
-    max_val = max(y_real_original.max(), y_pred_original.max())
-    plt.plot([min_val, max_val], [min_val, max_val], 'r--', label='Predicción Perfecta')
-    
-    plt.title('Correlación: Real vs Predicho', fontsize=14, fontweight='bold')
-    plt.xlabel('Precio Real (USD)')
-    plt.ylabel('Precio Predicho (USD)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    # Calcular R²
-    correlation = np.corrcoef(y_real_original, y_pred_original)[0,1]
-    r_squared = correlation ** 2
-    plt.text(0.05, 0.95, f'R² = {r_squared:.4f}', transform=plt.gca().transAxes,
-             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    # 4. Histograma de errores
-    plt.subplot(3, 2, 4)
-    errores = y_real_original - y_pred_original
-    plt.hist(errores, bins=30, alpha=0.7, color='orange', edgecolor='black')
-    plt.title('Distribución de Errores', fontsize=14, fontweight='bold')
-    plt.xlabel('Error (Real - Predicho)')
-    plt.ylabel('Frecuencia')
-    plt.grid(True, alpha=0.3)
-    
-    # Línea vertical en error = 0
-    plt.axvline(x=0, color='red', linestyle='--', label='Error = 0')
-    plt.legend()
-    
-    # 5. Errores absolutos a lo largo del tiempo
-    plt.subplot(3, 2, 5)
-    errores_abs = np.abs(errores)
-    plt.plot(errores_abs, color='orange', alpha=0.8)
-    plt.title('Errores Absolutos a lo Largo del Tiempo', fontsize=14, fontweight='bold')
-    plt.xlabel('Días')
-    plt.ylabel('Error Absoluto (USD)')
-    plt.grid(True, alpha=0.3)
-    
-    # Media móvil de errores
-    window = 10
-    if len(errores_abs) >= window:
-        media_movil = np.convolve(errores_abs, np.ones(window)/window, mode='valid')
-        plt.plot(range(window-1, len(errores_abs)), media_movil, 
-                color='red', linewidth=2, label=f'Media móvil ({window} días)')
-        plt.legend()
-    
-    # 6. Resumen de métricas
-    plt.subplot(3, 2, 6)
-    plt.axis('off')
-    
-    # Crear tabla de métricas
-    metricas_tabla = [
-        ['Métrica', 'Valor'],
-        ['MAE (Error Absoluto Medio)', f'${mae:.2f}'],
-        ['MSE (Error Cuadrático Medio)', f'${mse:.2f}'],
-        ['RMSE (Raíz del MSE)', f'${rmse:.2f}'],
-        ['MAPE (Error Porcentual)', f'{mape:.2f}%'],
-        ['Correlación', f'{correlation:.4f}'],
-        ['R² (Coef. Determinación)', f'{r_squared:.4f}'],
-        ['Datos de Prueba', f'{len(y_test)} puntos']
-    ]
-    
-    # Mostrar tabla
-    tabla = plt.table(cellText=metricas_tabla[1:], colLabels=metricas_tabla[0],
-                     cellLoc='left', loc='center', bbox=[0, 0, 1, 1])
-    tabla.auto_set_font_size(False)
-    tabla.set_fontsize(10)
-    tabla.scale(1, 2)
-    
-    # Colorear encabezados
-    for i in range(len(metricas_tabla[0])):
-        tabla[(0, i)].set_facecolor('#4CAF50')
-        tabla[(0, i)].set_text_props(weight='bold', color='white')
-    
-    plt.title('Resumen de Métricas de Evaluación', fontsize=14, fontweight='bold', pad=20)
-    
-    plt.tight_layout()
-    plt.show()
-    
-    print("✅ Visualizaciones detalladas completadas")
-    
-    return {
-        'mae': mae,
-        'mse': mse,
-        'rmse': rmse,
-        'mape': mape,
-        'correlation': correlation,
-        'r_squared': r_squared
-    }
-
-# Visualizar ejemplos de secuencias
-def visualizar_secuencias_ejemplo(X, y, scaler, n_ejemplos=3):
-    """
-    Visualiza ejemplos de secuencias de entrada y sus objetivos
-    
-    Args:
-        X: Secuencias de entrada (shape: samples, timesteps, features)
-        y: Objetivos correspondientes
-        scaler: Scaler para desnormalizar
-        n_ejemplos: Número de ejemplos a mostrar
-    """
-    print(f"\n🔍 Visualizando {n_ejemplos} ejemplos de secuencias temporales...")
-    
-    plt.figure(figsize=(15, 5 * n_ejemplos))
-    
-    for i in range(min(n_ejemplos, len(X))):
-        plt.subplot(n_ejemplos, 1, i+1)
-        
-        # Obtener secuencia y objetivo
-        secuencia = X[i].flatten()  # (20 días)
-        objetivo = y[i]  # (1 día siguiente)
-        
-        # Desnormalizar
-        secuencia_original = scaler.inverse_transform(secuencia.reshape(-1, 1)).flatten()
-        objetivo_original = scaler.inverse_transform([[objetivo]])[0][0]
-        
-        # Graficar secuencia
-        dias_secuencia = range(len(secuencia_original))
-        plt.plot(dias_secuencia, secuencia_original, 
-                'b-o', label='Secuencia de entrada (20 días)', markersize=4)
-        
-        # Graficar objetivo
-        plt.plot([len(secuencia_original)], [objetivo_original], 
-                'ro', markersize=8, label='Objetivo (día siguiente)')
-        
-        plt.title(f'Ejemplo {i+1}: Secuencia → Predicción', fontsize=12, fontweight='bold')
-        plt.xlabel('Días')
-        plt.ylabel('Precio (USD)')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        
-        # Conectar último punto de secuencia con objetivo
-        plt.plot([len(secuencia_original)-1, len(secuencia_original)], 
-                [secuencia_original[-1], objetivo_original], 'r--', alpha=0.5)
-    
-    plt.tight_layout()
-    plt.show()
-    
-    print("✅ Visualización de secuencias completada")
-
-# Ejecutar visualizaciones adicionales
-# print("\n" + "="*70)
-# print("EJECUTANDO VISUALIZACIONES ADICIONALES")
-# print("="*70)
-
-# # Visualizar historial de entrenamiento detallado
-# if 'historial_modelo' in locals():
-#     print("\nVisualizando historial de entrenamiento detallado...")
-#     plot_training_history(historial_modelo)
-
-# # Visualizaciones detalladas de predicciones
-# print("\nGenerando análisis detallado de predicciones...")
-# metricas_detalladas = visualizar_predicciones_detalladas(
-#     modelo_lstm, X_test, y_test, scaler, n_dias=50
-# )
-
-# # Visualizar ejemplos de secuencias
-# print("\nMostrando ejemplos de secuencias temporales...")
-# visualizar_secuencias_ejemplo(X_test, y_test, scaler, n_ejemplos=3)
-
-# print(f"\nAnalisis completo finalizado!")
-# print(f"Metricas principales:")
-# for metrica, valor in metricas_detalladas.items():
-#     if metrica in ['mae', 'rmse']:
-#         print(f"   • {metrica.upper()}: ${valor:.2f}")
-#     elif metrica == 'mape':
-#         print(f"   • {metrica.upper()}: {valor:.2f}%")
-#     else:
-#         print(f"   • {metrica.upper()}: {valor:.4f}")
-
-# Generar métricas detalladas silenciosamente para usar en predicción final
-y_pred = modelo_lstm.predict(X_test, verbose=0)
-y_real_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-y_pred_original = scaler.inverse_transform(y_pred).flatten()
-
-mae = mean_absolute_error(y_real_original, y_pred_original)
-mse = mean_squared_error(y_real_original, y_pred_original)
-rmse = np.sqrt(mse)
-mape = np.mean(np.abs((y_real_original - y_pred_original) / y_real_original)) * 100
-correlation = np.corrcoef(y_real_original, y_pred_original)[0,1]
-r_squared = correlation ** 2
-
-metricas_detalladas = {
-    'mae': mae,
-    'mse': mse, 
-    'rmse': rmse,
-    'mape': mape,
-    'correlation': correlation,
-    'r_squared': r_squared
-}
-
-print(f"\n✅ Modelo LSTM completamente implementado y evaluado!")
-print(f"🔄 Próximo paso: Optimización con Algoritmos Genéticos")
-
-# =============================================================================
-# PREDICCIÓN FINAL: ¿QUÉ PREDICE EL MODELO PARA YPF?
-# =============================================================================
-
-def hacer_prediccion_final(modelo, datos_recientes, scaler, lookback_window=20):
-    """
-    Hace una predicción específica para el próximo día de la acción YPF
-    usando los datos más recientes disponibles
-    
-    Args:
-        modelo: Modelo LSTM entrenado
-        datos_recientes: Últimos datos de la serie temporal
-        scaler: Objeto MinMaxScaler para desnormalizar
-        lookback_window: Ventana temporal del modelo
-    
-    Returns:
-        dict: Predicción detallada con contexto
-    """
-    print("\n" + "="*70)
-    print("PREDICCION FINAL: QUE PREDICE EL MODELO PARA YPF?")
-    print("="*70)
-    
-    # Obtener los últimos datos disponibles
-    ultimos_datos = datos_recientes.tail(lookback_window)
-    precio_actual = float(ultimos_datos.iloc[-1])
-    fecha_actual = ultimos_datos.index[-1].date()
-    
-    print(f"\nCONTEXTO ACTUAL:")
-    print(f"   • Fecha del ultimo precio: {fecha_actual}")
-    print(f"   • Precio actual de YPF: ${precio_actual:.2f}")
-    print(f"   • Ventana de analisis: {lookback_window} dias anteriores")
-    
-    # Normalizar los últimos datos
-    ultimos_normalizados = scaler.transform(ultimos_datos.values.reshape(-1, 1))
-    
-    # Preparar entrada para el modelo
-    X_prediccion = ultimos_normalizados.reshape(1, lookback_window, 1)
-    
-    # Hacer predicción
-    prediccion_normalizada = modelo.predict(X_prediccion, verbose=0)
-    
-    # Desnormalizar predicción
-    precio_predicho = float(scaler.inverse_transform(prediccion_normalizada)[0][0])
-    
-    # Calcular variaciones
-    variacion_absoluta = precio_predicho - precio_actual
-    variacion_porcentual = (variacion_absoluta / precio_actual) * 100
-    
-    # Determinar tendencia
-    if variacion_porcentual > 2:
-        tendencia = "FUERTE ALZA"
-        interpretacion = "El modelo predice un aumento significativo"
-    elif variacion_porcentual > 0.5:
-        tendencia = "ALZA MODERADA"
-        interpretacion = "El modelo predice un aumento moderado"
-    elif variacion_porcentual > -0.5:
-        tendencia = "ESTABLE"
-        interpretacion = "El modelo predice estabilidad de precios"
-    elif variacion_porcentual > -2:
-        tendencia = "BAJA MODERADA"
-        interpretacion = "El modelo predice una disminucion moderada"
-    else:
-        tendencia = "FUERTE BAJA"
-        interpretacion = "El modelo predice una disminucion significativa"
-    
-    print(f"\nPREDICCION PARA EL PROXIMO DIA DE TRADING:")
-    print(f"   • Precio predicho: ${precio_predicho:.2f}")
-    print(f"   • Variacion absoluta: ${variacion_absoluta:+.2f}")
-    print(f"   • Variacion porcentual: {variacion_porcentual:+.2f}%")
-    print(f"   • Tendencia: {tendencia}")
-    print(f"   • Interpretacion: {interpretacion}")
-    
-    # Análisis de confianza basado en el rendimiento del modelo
-    if 'metricas_detalladas' in globals():
-        mape = metricas_detalladas.get('mape', 0)
-        r_squared = metricas_detalladas.get('r_squared', 0)
-        
-        if mape < 5 and r_squared > 0.7:
-            confianza = "ALTA"
-            confianza_emoji = "ALTA"
-        elif mape < 10 and r_squared > 0.5:
-            confianza = "MEDIA"
-            confianza_emoji = "MEDIA"
-        else:
-            confianza = "BAJA"
-            confianza_emoji = "BAJA"
-        
-        print(f"\nNIVEL DE CONFIANZA: {confianza_emoji}")
-        print(f"   • MAPE del modelo: {mape:.2f}%")
-        print(f"   • R2 del modelo: {r_squared:.4f}")
-    
-    # Mostrar contexto histórico reciente
-    print(f"\nCONTEXTO DE LOS ULTIMOS 5 DIAS:")
-    ultimos_5_dias = ultimos_datos.tail(5)
-    for i in range(len(ultimos_5_dias)):
-        fecha = ultimos_5_dias.index[i]
-        precio = ultimos_5_dias.iloc[i]
-        es_ultimo = i == len(ultimos_5_dias) - 1
-        emoji = ">>>" if es_ultimo else "   "
-        # Manejar diferentes tipos de fecha
-        if hasattr(fecha, 'date'):
-            fecha_str = fecha.date()
-        else:
-            fecha_str = str(fecha)
-        print(f"   {emoji} {fecha_str}: ${float(precio):.2f}")
-    
-    return {
-        'precio_actual': precio_actual,
-        'precio_predicho': precio_predicho,
-        'variacion_absoluta': variacion_absoluta,
-        'variacion_porcentual': variacion_porcentual,
-        'tendencia': tendencia,
-        'interpretacion': interpretacion,
-        'fecha_prediccion': fecha_actual
-    }
-
-def mostrar_escenarios_prediccion(prediccion_base, precio_actual):
-    """
-    Muestra diferentes escenarios basados en la predicción
-    """
-    print(f"\nESCENARIOS DE INVERSION:")
-    
-    precio_predicho = prediccion_base['precio_predicho']
-    variacion_pct = prediccion_base['variacion_porcentual']
-    
-    # Escenarios de inversión
-    inversion_ejemplo = 10000  # $10,000 como ejemplo
-    acciones_posibles = inversion_ejemplo / precio_actual
-    
-    print(f"\nEjemplo con inversion de ${inversion_ejemplo:,.0f}:")
-    print(f"   • Acciones que se pueden comprar: {acciones_posibles:.0f}")
-    
-    if variacion_pct > 0:
-        ganancia_potencial = acciones_posibles * prediccion_base['variacion_absoluta']
-        print(f"   • Ganancia potencial: ${ganancia_potencial:+.2f}")
-        print(f"   • ROI esperado: {variacion_pct:+.2f}%")
-        print(f"   • Estrategia sugerida: COMPRAR")
-    else:
-        perdida_potencial = acciones_posibles * prediccion_base['variacion_absoluta']
-        print(f"   • Perdida potencial: ${perdida_potencial:+.2f}")
-        print(f"   • ROI esperado: {variacion_pct:+.2f}%")
-        print(f"   • Estrategia sugerida: MANTENER o VENDER")
-    
-    print(f"\nDISCLAIMER:")
-    print(f"   • Esta es una prediccion basada en datos historicos")
-    print(f"   • Los mercados financieros son impredecibles")
-    print(f"   • Siempre consulte con un asesor financiero")
-    print(f"   • No invierta mas de lo que puede permitirse perder")
-
-def visualizar_prediccion_final(datos_historicos, prediccion, scaler):
-    """
-    Crea una visualización específica de la predicción final
-    """
-    print(f"\nCreando visualizacion de la prediccion final...")
-    
-    # Preparar datos para visualización
-    ultimos_30_dias = datos_historicos.tail(30)
-    fechas = ultimos_30_dias.index
-    precios = ultimos_30_dias.values
-    
-    # Crear fecha para la predicción (próximo día de trading)
-    from datetime import timedelta
-    fecha_prediccion = fechas[-1] + timedelta(days=1)
-    precio_predicho = prediccion['precio_predicho']
-    precio_actual = float(precios[-1])  # Convertir a escalar
-    
-    plt.figure(figsize=(14, 8))
-    
-    # Gráfico principal
-    plt.plot(fechas, precios, 'b-', linewidth=2, label='Precios Historicos', marker='o', markersize=4)
-    
-    # Punto actual
-    plt.plot(fechas[-1], precio_actual, 'go', markersize=10, label=f'Precio Actual: ${precio_actual:.2f}')
-    
-    # Predicción
-    plt.plot(fecha_prediccion, precio_predicho, 'rs', markersize=12, 
-             label=f'Prediccion: ${precio_predicho:.2f}')
-    
-    # Línea conectora
-    plt.plot([fechas[-1], fecha_prediccion], [precio_actual, precio_predicho], 
-             'r--', alpha=0.7, linewidth=2)
-    
-    # Formateo
-    plt.title('YPF - Prediccion para el Proximo Dia de Trading', fontsize=16, fontweight='bold')
-    plt.xlabel('Fecha', fontsize=12)
-    plt.ylabel('Precio (USD)', fontsize=12)
-    plt.legend(fontsize=11)
-    plt.grid(True, alpha=0.3)
-    plt.xticks(rotation=45)
-    
-    # Añadir información de la predicción
-    variacion = prediccion['variacion_porcentual']
-    color_texto = 'green' if variacion > 0 else 'red'
-    plt.text(0.02, 0.98, 
-             f"Variacion Predicha: {variacion:+.2f}%\n{prediccion['tendencia']}", 
-             transform=plt.gca().transAxes, fontsize=12, fontweight='bold',
-             verticalalignment='top', color=color_texto,
-             bbox=dict(boxstyle='round', facecolor='white', alpha=0.9))
-    
-    plt.tight_layout()
-    plt.show()
-    
-    print("Visualizacion de prediccion final completada")
-
-# EJECUTAR PREDICCION FINAL
-print("\n" + "="*70)
-print("EJECUTANDO PREDICCION FINAL PARA YPF")
-print("="*70)
-
-# Hacer predicción para el próximo día
-prediccion_final = hacer_prediccion_final(modelo_lstm, datos_ypf, scaler, LOOKBACK_WINDOW)
-
-# Mostrar escenarios de inversión
-mostrar_escenarios_prediccion(prediccion_final, prediccion_final['precio_actual'])
-
-# Visualizar predicción
-visualizar_prediccion_final(datos_ypf, prediccion_final, scaler)
-
-# RESUMEN EJECUTIVO FINAL
-print("\n" + "="*70)
-print("RESUMEN EJECUTIVO - PREDICCION LSTM PARA YPF")
-print("="*70)
-
-print(f"""
-PREDICCION PRINCIPAL:
-   El modelo LSTM predice que YPF cotizara a ${prediccion_final['precio_predicho']:.2f} 
-   en el proximo dia de trading, representando una variacion de {prediccion_final['variacion_porcentual']:+.2f}%
-
-FUNDAMENTO TECNICO:
-   • Modelo entrenado con {NUM_DATOS} puntos historicos
-   • Arquitectura: 2 capas LSTM con 50 unidades cada una
-   • Ventana temporal: {LOOKBACK_WINDOW} dias de historia para prediccion
-   • Accuracy del modelo: R2 = {metricas_detalladas.get('r_squared', 0):.4f}
-
-INTERPRETACION:
-   {prediccion_final['interpretacion']}
-
-RIESGOS Y LIMITACIONES:
-   • Modelo basado en patrones historicos
-   • No considera eventos fundamentales o noticias
-   • Mercados pueden ser impredecibles en el corto plazo
-   • Error promedio del modelo: ±{metricas_detalladas.get('mape', 0):.1f}%
-
-PROXIMOS PASOS:
-   * Modelo LSTM base implementado
-   * Pendiente: Optimizacion con Algoritmos Geneticos
-   * Objetivo: Mejorar precision mediante evolucion de hiperparametros
-""")
-
-print(f"\nIMPLEMENTACION LSTM COMPLETADA CON PREDICCION CLARA!")
-print(f"Sistema listo para la fase de optimizacion con Algoritmos Geneticos")
 

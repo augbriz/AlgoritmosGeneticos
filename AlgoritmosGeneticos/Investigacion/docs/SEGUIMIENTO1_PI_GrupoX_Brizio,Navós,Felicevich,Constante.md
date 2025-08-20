@@ -16,7 +16,7 @@ Objetivos de la futura investigación
 
    • **Objetivo general**    Evaluar la viabilidad de un enfoque híbrido que integre indicadores caóticos y redes neuronales recurrentes, optimizadas mediante algoritmos genéticos, para predecir el comportamiento diario de la acción de YPF.
 
-   • **Objetivos específicos**       
+   • **Objetivos específicos**
 
 1\. Caracterizar la naturaleza caótica de la serie temporal de precios de YPF calculando indicadores como el exponente de Lyapunov.     
 
