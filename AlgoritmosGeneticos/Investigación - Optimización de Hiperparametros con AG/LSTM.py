@@ -551,6 +551,14 @@ def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None):
         titulo = f'Predicciones (h = t+{h+1})'
 
     y_pred = modelo.predict(X, verbose=0)           # (N, H)
+    
+    # Validar que el horizonte solicitado esté disponible
+    max_horizonte_disponible = y_pred.shape[1]
+    if h >= max_horizonte_disponible:
+        print(f"  Horizonte h={h} no disponible. Máximo disponible: {max_horizonte_disponible-1}")
+        print(f"Usando horizonte h={max_horizonte_disponible-1} en su lugar.")
+        h = max_horizonte_disponible - 1
+    
     # seleccionar horizonte h
     y_pred_h_norm = y_pred[:, h].reshape(-1,1)
     y_real_h_norm = y_real[:, h].reshape(-1,1)
@@ -572,7 +580,7 @@ def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None):
     
     plt.show()
 
-def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historicos, fechas_historicas=None, max_horizonte=5):
+def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historicos, fechas_historicas=None, max_horizonte=PREDICTION_HORIZON):
     """
     Visualización simple y efectiva de predicciones futuras con análisis de error
     
@@ -582,7 +590,7 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
         scaler: Scaler para desnormalizar
         datos_historicos: Precios históricos para el contexto
         fechas_historicas: Fechas correspondientes a los datos históricos
-        max_horizonte: Número de días a predecir (default: 5)
+        max_horizonte: Número de días a predecir (default: PREDICTION_HORIZON)
     """
     
     # 1. Obtener predicciones y calcular RMSE por horizonte
@@ -762,8 +770,10 @@ graficar_metricas_entrenamiento(historial_modelo)
 # Evaluar modelo
 resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
 
-# Graficar predicciones
-graficar_predicciones_multi(modelo_lstm, X_test, y_test, scaler, h=4, titulo='Predicciones en Test (t+5)')
+# Graficar predicciones del último horizonte disponible
+ultimo_horizonte = PREDICTION_HORIZON - 1  # Índice del último horizonte (0-based)
+graficar_predicciones_multi(modelo_lstm, X_test, y_test, scaler, h=ultimo_horizonte, 
+                           titulo=f'Predicciones en Test (t+{ultimo_horizonte + 1})')
 
 # Evaluación completa de todos los horizontes de predicción
 print("\n" + " ANÁLISIS COMPLETO DE HORIZONTES DE PREDICCIÓN ")
@@ -774,8 +784,8 @@ datos_historicos_desnorm = scaler.inverse_transform(datos_normalizados.reshape(-
 resultados_horizontes = evaluar_predicciones_futuras(
     modelo_lstm, X_test, y_test, scaler, 
     datos_historicos=datos_historicos_desnorm, 
-    fechas_historicas=None,  # Puedes pasar fechas si las tienes
-    max_horizonte=5
+    fechas_historicas=None,  
+    max_horizonte=PREDICTION_HORIZON  
 )
 
 
