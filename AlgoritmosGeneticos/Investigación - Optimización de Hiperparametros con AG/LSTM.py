@@ -6,9 +6,9 @@ warnings.filterwarnings('ignore')
 import datetime
 today = datetime.date.today()
 print("Fecha actual:", today) 
-# importación de los datos 
+
 import yfinance as yf            
-# Framework deep learning
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
@@ -46,6 +46,8 @@ LOOKBACK_WINDOW = 20      # Ventana temporal: últimos 20 días para predecir
 TRAIN_SPLIT = 0.7         # 70% para entrenamiento
 VAL_SPLIT = 0.15          # 15% para validación
 TEST_SPLIT = 0.15         # 15% para prueba
+
+PREDICTION_HORIZON = 5
 
 print(f"Configuracion del proyecto:")
 print(f"   • Ticker: {TICKER}")
@@ -154,7 +156,7 @@ def normalizar_datos(serie):
     
     return datos_normalizados.flatten(), scaler
 
-def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=1):
+def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=PREDICTION_HORIZON):
     """
     Crea secuencias temporales para entrenar la LSTM
     
@@ -245,21 +247,22 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     print(f"   • Prueba: {len(X_test)} secuencias ({len(X_test)/n_samples:.1%})")
     
     
+    
+    y_plot = y[:, 0] if y.ndim == 2 else y  # t+1
     plt.figure(figsize=(14,6))
-    plt.plot(range(len(y)), y, label='Serie completa', color='lightgray')
+    plt.plot(range(len(y_plot)), y_plot, label='Serie', color='lightgray')
 
-    plt.plot(range(0, train_end), y[:train_end], label='Train', color='blue')
-    plt.plot(range(train_end, val_end), y[train_end:val_end], label='Validation', color='orange')
-    plt.plot(range(val_end, n_samples), y[val_end:], label='Test', color='green')
+    plt.plot(range(0, train_end), y_plot[:train_end], label='Train', color='blue')
+    plt.plot(range(train_end, val_end), y_plot[train_end:val_end], label='Validation', color='orange')
+    plt.plot(range(val_end, n_samples), y_plot[val_end:], label='Test', color='green')
 
-    plt.title("División Train / Validation / Test")
+    plt.title("División Train / Validation / Test ")
     plt.xlabel("Índice temporal")
     plt.ylabel("Valor normalizado")
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.show()
 
-    
     return X_train, X_val, X_test, y_train, y_val, y_test
 
 def visualizar_normalizacion(datos_originales, datos_normalizados):
@@ -362,7 +365,7 @@ def crear_modelo_lstm(input_shape,
         model.add(Dropout(dropout_rate, name=f'Dropout_{i}'))
     
     # Capa de salida
-    model.add(Dense(1, activation='linear', name='Output'))
+    model.add(Dense(PREDICTION_HORIZON, activation='linear', name='Output'))
     
     # Compilar modelo
     model.compile(
@@ -394,36 +397,6 @@ def configurar_callbacks():
         )
     ]
     return callbacks
-
-def mostrar_parametros_modelo(modelo):
-    """
-    Muestra información detallada sobre los parámetros del modelo
-    """
-    # print("\nAnalisis de parametros del modelo:")
-    # print("="*50)
-    
-    # total_params = modelo.count_params()
-    # trainable_params = sum([tf.keras.backend.count_params(w) for w in modelo.trainable_weights])
-    
-    # print(f"Total de parametros: {total_params:,}")
-    # print(f"Parametros entrenables: {trainable_params:,}")
-    # print(f"Parametros no entrenables: {total_params - trainable_params:,}")
-    
-    # # Desglose por capa
-    # print(f"\nDesglose por capas:")
-    # for i, layer in enumerate(modelo.layers):
-    #     layer_type = type(layer).__name__
-    #     params = layer.count_params()
-    #     trainable = sum([tf.keras.backend.count_params(w) for w in layer.trainable_weights])
-    #     non_trainable = params - trainable
-        
-    #     print(f"   • Capa {i+1} ({layer_type}): {params:,} parametros")
-    #     print(f"     - Entrenables: {trainable:,}")
-    #     print(f"     - No entrenables: {non_trainable:,}")
-    
-    # print("\nAnalisis de parametros completado")
-    pass
-
 
 # =============================================================================
 # ENTRENAMIENTO DEL MODELO LSTM
@@ -477,6 +450,79 @@ historial_modelo = entrenar_modelo(
 # FASE 5: EVALUACIÓN Y PRUEBA DEL MODELO LSTM
 # =============================================================================
 
+def rmse(y_true, y_pred):
+    """Calcula el Root Mean Square Error"""
+    return float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
+
+def graficar_metricas_entrenamiento(historial):
+    """
+    Grafica la evolución de las métricas durante el entrenamiento
+    
+    Args:
+        historial: Historial devuelto por model.fit()
+    """
+    # Crear figura con subplots
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    
+    # Gráfico 1: Loss
+    axes[0].plot(historial.history['loss'], label='Training Loss', linewidth=2, color='blue')
+    axes[0].plot(historial.history['val_loss'], label='Validation Loss', linewidth=2, color='red')
+    axes[0].set_title('Evolución del Loss', fontsize=14, fontweight='bold')
+    axes[0].set_xlabel('Epoch')
+    axes[0].set_ylabel('Loss')
+    axes[0].legend()
+    axes[0].grid(True, alpha=0.3)
+    
+    # Gráfico 2: RMSE
+    axes[1].plot(historial.history['rmse'], label='Training RMSE', linewidth=2, color='blue')
+    axes[1].plot(historial.history['val_rmse'], label='Validation RMSE', linewidth=2, color='red')
+    axes[1].set_title('Evolución del RMSE', fontsize=14, fontweight='bold')
+    axes[1].set_xlabel('Epoch')
+    axes[1].set_ylabel('RMSE')
+    axes[1].legend()
+    axes[1].grid(True, alpha=0.3)
+    
+    # Gráfico 3: Learning Rate (si está disponible)
+    if 'learning_rate' in historial.history:
+        axes[2].plot(historial.history['learning_rate'], linewidth=2, color='green')
+        axes[2].set_title('Evolución del Learning Rate', fontsize=14, fontweight='bold')
+        axes[2].set_xlabel('Epoch')
+        axes[2].set_ylabel('Learning Rate')
+        axes[2].set_yscale('log')  # Escala logarítmica para mejor visualización
+        axes[2].grid(True, alpha=0.3)
+    else:
+        # Si no hay learning rate, mostrar un gráfico de comparación loss vs val_loss
+        epochs = range(1, len(historial.history['loss']) + 1)
+        axes[2].plot(epochs, historial.history['loss'], 'b-', label='Training Loss')
+        axes[2].plot(epochs, historial.history['val_loss'], 'r-', label='Validation Loss')
+        axes[2].set_title('Training vs Validation Loss', fontsize=14, fontweight='bold')
+        axes[2].set_xlabel('Epoch')
+        axes[2].set_ylabel('Loss')
+        axes[2].legend()
+        axes[2].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    # Imprimir resumen de métricas finales
+    print("\n" + "="*60)
+    print("RESUMEN DE MÉTRICAS FINALES")
+    print("="*60)
+    print(f"Loss final (training): {historial.history['loss'][-1]:.6f}")
+    print(f"Loss final (validation): {historial.history['val_loss'][-1]:.6f}")
+    print(f"RMSE final (training): {historial.history['rmse'][-1]:.6f}")
+    print(f"RMSE final (validation): {historial.history['val_rmse'][-1]:.6f}")
+    
+    # Encontrar la mejor época (menor val_loss)
+    mejor_epoch = np.argmin(historial.history['val_loss']) + 1
+    mejor_val_loss = min(historial.history['val_loss'])
+    mejor_val_rmse = historial.history['val_rmse'][mejor_epoch - 1]
+    
+    print(f"\nMejor época: {mejor_epoch}")
+    print(f"Mejor val_loss: {mejor_val_loss:.6f}")
+    print(f"Mejor val_rmse: {mejor_val_rmse:.6f}")
+    print("="*60)
+
 def evaluar_modelo(modelo, X_test, y_test):
     """
     Evalúa el modelo LSTM con los datos de prueba
@@ -500,40 +546,24 @@ def evaluar_modelo(modelo, X_test, y_test):
     
     return metrica_resultados
 
-def graficar_predicciones(modelo, X, y_real, scaler, titulo='Predicciones del Modelo'):
-    """
-    Grafica las predicciones del modelo LSTM contra los valores reales
-    
-    Args:
-        modelo: Modelo LSTM entrenado
-        X: Datos de entrada (X_test o similar)
-        y_real: Valores reales (y_test o similar)
-        scaler: Objeto scaler para deshacer la normalización
-        titulo: Título del gráfico
-    """
-    print(f"\nGraficando {titulo}...")
-    
-    
-    y_pred = modelo.predict(X)
-    
-    # Invertir la normalización
-    y_real_invertido = scaler.inverse_transform(y_real.reshape(-1, 1))
-    y_pred_invertido = scaler.inverse_transform(y_pred)
-    
-    def evaluar_rmse_en_usd(modelo, X_test, y_test, scaler):
-        y_pred = modelo.predict(X_test, verbose=0).ravel()
-        y_pred_usd = scaler.inverse_transform(y_pred.reshape(-1,1)).ravel()
-        y_test_usd = scaler.inverse_transform(y_test.reshape(-1,1)).ravel()
-        return np.sqrt(np.mean((y_test_usd - y_pred_usd)**2))
+def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None):
+    if titulo is None:
+        titulo = f'Predicciones (h = t+{h+1})'
 
-    rmse_model_usd = evaluar_rmse_en_usd(modelo_lstm, X_test, y_test, scaler)
-    print(f"Modelo LSTM - RMSE en USD: {rmse_model_usd:.4f}")
+    y_pred = modelo.predict(X, verbose=0)           # (N, H)
+    # seleccionar horizonte h
+    y_pred_h_norm = y_pred[:, h].reshape(-1,1)
+    y_real_h_norm = y_real[:, h].reshape(-1,1)
 
-    
+    y_pred_h = scaler.inverse_transform(y_pred_h_norm).ravel()
+    y_real_h = scaler.inverse_transform(y_real_h_norm).ravel()
+
+    print(f"RMSE (h=t+{h+1}) en USD: {rmse(y_real_h, y_pred_h):.4f}")
+
     # Graficar
     plt.figure(figsize=(14, 8))
-    plt.plot(y_real_invertido, label='Real', linewidth=2, color='blue')
-    plt.plot(y_pred_invertido, label='Predicción', linewidth=2, color='red')
+    plt.plot(y_real_h, label='Real', linewidth=2, color='blue')
+    plt.plot(y_pred_h, label='Predicción', linewidth=2, color='red')
     plt.title(titulo, fontsize=16, fontweight='bold')
     plt.xlabel('Días')
     plt.ylabel('Precio (USD)')
@@ -542,11 +572,212 @@ def graficar_predicciones(modelo, X, y_real, scaler, titulo='Predicciones del Mo
     
     plt.show()
 
+def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historicos, fechas_historicas=None, max_horizonte=5):
+    """
+    Visualización simple y efectiva de predicciones futuras con análisis de error
+    
+    Args:
+        modelo: Modelo LSTM entrenado
+        X_test, y_test: Datos de prueba
+        scaler: Scaler para desnormalizar
+        datos_historicos: Precios históricos para el contexto
+        fechas_historicas: Fechas correspondientes a los datos históricos
+        max_horizonte: Número de días a predecir (default: 5)
+    """
+    
+    # 1. Obtener predicciones y calcular RMSE por horizonte
+    y_pred_all = modelo.predict(X_test, verbose=0)
+    
+    rmse_por_horizonte = []
+    predicciones_ejemplo = []
+    
+    # Calcular RMSE para cada horizonte usando datos de test
+    for h in range(max_horizonte):
+        y_pred_h_norm = y_pred_all[:, h].reshape(-1, 1)
+        y_real_h_norm = y_test[:, h].reshape(-1, 1)
+        
+        y_pred_h = scaler.inverse_transform(y_pred_h_norm).ravel()
+        y_real_h = scaler.inverse_transform(y_real_h_norm).ravel()
+        
+        rmse_h = rmse(y_real_h, y_pred_h)
+        rmse_por_horizonte.append(rmse_h)
+        
+        # Tomar la última predicción como ejemplo para el futuro
+        predicciones_ejemplo.append(y_pred_h[-1])
+    
+    # Calcular RMSE promedio
+    rmse_promedio = np.mean(rmse_por_horizonte)
+    
+    # 2. GRÁFICO 1: Serie histórica + predicciones futuras con banda de error
+    plt.figure(figsize=(15, 8))
+    
+    # Datos históricos (últimos 100 días para contexto)
+    n_contexto = min(100, len(datos_historicos))
+    hist_reciente = datos_historicos[-n_contexto:]
+    
+    # Crear índices para el gráfico
+    x_historico = range(len(hist_reciente))
+    x_futuro = range(len(hist_reciente), len(hist_reciente) + max_horizonte)
+    
+    # Plotear serie histórica
+    plt.plot(x_historico, hist_reciente, 'b-', linewidth=2, label='Histórico', alpha=0.8)
+    
+    # Plotear predicciones futuras
+    plt.plot(x_futuro, predicciones_ejemplo, 'r-', linewidth=3, label='Predicciones', marker='o', markersize=6)
+    
+    # Agregar bandas de error (área de confianza)
+    upper_band = [pred + error for pred, error in zip(predicciones_ejemplo, rmse_por_horizonte)]
+    lower_band = [pred - error for pred, error in zip(predicciones_ejemplo, rmse_por_horizonte)]
+    
+    plt.fill_between(x_futuro, lower_band, upper_band, alpha=0.2, color='red', label='±RMSE (zona de confianza)')
+    
+    plt.title('Predicciones Futuras con Banda de Error', fontsize=16, fontweight='bold')
+    plt.xlabel('Días')
+    plt.ylabel('Precio (USD)')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+    
+    # 3. GRÁFICO 2: Tabla de predicciones
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.axis('tight')
+    ax.axis('off')
+    
+    # Preparar datos para la tabla
+    tabla_data = []
+    for i in range(max_horizonte):
+        tabla_data.append([
+            f't+{i+1}',
+            f'${predicciones_ejemplo[i]:.2f}',
+            f'±${rmse_por_horizonte[i]:.2f}'
+        ])
+    
+    # Agregar fila del promedio
+    tabla_data.append(['', '', ''])  # Fila vacía
+    tabla_data.append(['PROMEDIO', '', f'±${rmse_promedio:.2f}'])
+    
+    # Crear tabla
+    tabla = ax.table(cellText=tabla_data,
+                    colLabels=['Horizonte', 'Predicción (USD)', 'RMSE histórico (USD)'],
+                    cellLoc='center',
+                    loc='center',
+                    colWidths=[0.25, 0.35, 0.4])
+    
+    # Formatear tabla
+    tabla.auto_set_font_size(False)
+    tabla.set_fontsize(12)
+    tabla.scale(1.2, 2)
+    
+    # Resaltar header
+    for i in range(3):
+        tabla[(0, i)].set_facecolor('#4CAF50')
+        tabla[(0, i)].set_text_props(weight='bold', color='white')
+    
+    # Resaltar fila del promedio
+    for i in range(3):
+        tabla[(max_horizonte + 2, i)].set_facecolor('#FFC107')
+        tabla[(max_horizonte + 2, i)].set_text_props(weight='bold')
+    
+    plt.title('Tabla de Predicciones con Error Esperado', fontsize=16, fontweight='bold', pad=20)
+    plt.tight_layout()
+    plt.show()
+    
+    # 4. GRÁFICO 3: Curva de error vs horizonte
+    plt.figure(figsize=(10, 6))
+    
+    horizontes = list(range(1, max_horizonte + 1))
+    plt.plot(horizontes, rmse_por_horizonte, 'o-', linewidth=3, markersize=10, color='red')
+    
+    # Agregar línea del promedio
+    plt.axhline(y=rmse_promedio, color='blue', linestyle='--', linewidth=2, 
+               label=f'RMSE Promedio: ${rmse_promedio:.2f}')
+    
+    # Anotar valores en cada punto
+    for i, (h, error) in enumerate(zip(horizontes, rmse_por_horizonte)):
+        plt.annotate(f'${error:.2f}', (h, error), textcoords="offset points", 
+                    xytext=(0,15), ha='center', fontweight='bold', fontsize=11)
+    
+    plt.title('Evolución del Error por Horizonte de Predicción', fontsize=16, fontweight='bold')
+    plt.xlabel('Horizonte (días adelante)', fontsize=12)
+    plt.ylabel('RMSE (USD)', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    
+    # 5. Resumen en consola
+    print("\n" + "="*60)
+    print(" RESUMEN DE PREDICCIONES FUTURAS")
+    print("="*60)
+    for i, (pred, error) in enumerate(zip(predicciones_ejemplo, rmse_por_horizonte)):
+        print(f"t+{i+1}: ${pred:.2f} (el modelo suele fallar ~${error:.2f} USD)")
+    print(f"\n RMSE PROMEDIO: ${rmse_promedio:.2f} USD")
+    print("="*60)
+    
+    return {
+        'predicciones': predicciones_ejemplo,
+        'rmse_por_horizonte': rmse_por_horizonte,
+        'rmse_promedio': rmse_promedio
+    }
+    
+    # Resumen interpretativo
+    print("\n" + "="*70)
+    print("RESUMEN INTERPRETATIVO")
+    print("="*70)
+    
+    mejor_horizonte = horizontes[np.argmin(rmse_valores)]
+    peor_horizonte = horizontes[np.argmax(rmse_valores)]
+    
+    print(f"• RMSE PROMEDIO (todos los horizontes): ${rmse_promedio:.2f} USD")
+    print(f"• Mejor rendimiento: t+{mejor_horizonte} (RMSE: ${min(rmse_valores):.2f} USD)")
+    print(f"• Peor rendimiento: t+{peor_horizonte} (RMSE: ${max(rmse_valores):.2f} USD)")
+    print(f"• Incremento de error promedio por horizonte: ${np.mean(np.diff(rmse_valores)):.2f} USD")
+    
+    degradacion = ((rmse_valores[-1] - rmse_valores[0]) / rmse_valores[0]) * 100
+    print(f"• Degradación total (t+1 vs t+{max_horizonte}): {degradacion:.1f}%")
+    
+    print(f"\n Interpretación del rendimiento:")
+    for i, (h, rmse_val) in enumerate(zip(horizontes, rmse_valores)):
+        if i == 0:
+            print(f"  - El modelo erra ~${rmse_val:.1f} USD en t+{h}")
+        else:
+            diff = rmse_val - rmse_valores[0]
+            print(f"  - El modelo erra ~${rmse_val:.1f} USD en t+{h} (+${diff:.1f} USD vs t+1)")
+    
+    print(f"  - PROMEDIO: El modelo tiene un error promedio de ~${rmse_promedio:.1f} USD")
+    print("="*70)
+    
+    return {
+        'horizontes': horizontes,
+        'rmse': rmse_valores,
+        'rmse_promedio': rmse_promedio,
+        'mejor_horizonte': mejor_horizonte,
+        'peor_horizonte': peor_horizonte
+    }
+
+# Graficar evolución de métricas durante entrenamiento
+graficar_metricas_entrenamiento(historial_modelo)
+
 # Evaluar modelo
 resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
 
 # Graficar predicciones
-graficar_predicciones(modelo_lstm, X_test, y_test, scaler, titulo='Predicciones en Datos de Prueba')
+graficar_predicciones_multi(modelo_lstm, X_test, y_test, scaler, h=4, titulo='Predicciones en Test (t+5)')
+
+# Evaluación completa de todos los horizontes de predicción
+print("\n" + " ANÁLISIS COMPLETO DE HORIZONTES DE PREDICCIÓN ")
+
+# Necesitamos los datos históricos desnormalizados para el contexto
+datos_historicos_desnorm = scaler.inverse_transform(datos_normalizados.reshape(-1, 1)).ravel()
+
+resultados_horizontes = evaluar_predicciones_futuras(
+    modelo_lstm, X_test, y_test, scaler, 
+    datos_historicos=datos_historicos_desnorm, 
+    fechas_historicas=None,  # Puedes pasar fechas si las tienes
+    max_horizonte=5
+)
+
 
 
 
