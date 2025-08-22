@@ -1,5 +1,3 @@
-# === GA MINIMO: generación 0 (random search + ranking) ===
-
 import os, random, numpy as np
 # Reproducibilidad 
 os.environ["PYTHONHASHSEED"] = "42"
@@ -10,7 +8,7 @@ random.seed(42); np.random.seed(42)
 import LSTM
 import matplotlib.pyplot as plt
 
-# ----- Espacio de búsqueda (pequeño para empezar) -----
+# ----- Espacio de búsqueda  
 SPACE = {
     "lstm_units":   (32, 96),             # enteros
     "num_layers":   (1, 3),               # enteros
