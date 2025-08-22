@@ -763,32 +763,129 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
         'mejor_horizonte': mejor_horizonte,
         'peor_horizonte': peor_horizonte
     }
+    
+def _rmse_promedio_normalizado(modelo, X_val, y_val):
+    """RMSE promedio (normalizado) sobre todos los horizontes."""
+    y_pred = modelo.predict(X_val, verbose=0)  # (N, H)
+    H = y_val.shape[1] if y_val.ndim == 2 else 1
+    rmse_h = []
+    for h in range(H):
+        y_true_h = y_val[:, h] if H > 1 else y_val
+        y_pred_h = y_pred[:, h] if H > 1 else y_pred.ravel()
+        rmse_h.append(np.sqrt(np.mean((y_true_h - y_pred_h) ** 2)))
+    return float(np.mean(rmse_h)), [float(v) for v in rmse_h]
 
+def _rmse_promedio_usd(modelo, X_val, y_val, scaler):
+    """RMSE promedio (en USD) sobre todos los horizontes."""
+    y_pred = modelo.predict(X_val, verbose=0)  # (N, H)
+    H = y_val.shape[1] if y_val.ndim == 2 else 1
+    rmse_h_usd = []
+    for h in range(H):
+        y_true_h = y_val[:, h].reshape(-1, 1) if H > 1 else y_val.reshape(-1, 1)
+        y_pred_h = y_pred[:, h].reshape(-1, 1) if H > 1 else y_pred.reshape(-1, 1)
+        y_true_h_usd = scaler.inverse_transform(y_true_h).ravel()
+        y_pred_h_usd = scaler.inverse_transform(y_pred_h).ravel()
+        rmse_h_usd.append(float(np.sqrt(np.mean((y_true_h_usd - y_pred_h_usd) ** 2))))
+    return float(np.mean(rmse_h_usd)), rmse_h_usd
+
+def ga_evaluate(hp: dict, do_plots: bool = False):
+    """
+    Entrena y evalúa un conjunto de hiperparámetros en VALIDACIÓN.
+    hp: dict con claves opcionales:
+        - lstm_units (int)      - num_layers (int)
+        - dropout_rate (float)  - learning_rate (float)
+        - batch_size (int)      - epochs (int)
+    Devuelve: dict con 'fitness' (RMSE prom. normalizado) y métricas extra.
+    """
+    # --- 1) Leer hiperparámetros con defaults ---
+    lstm_units    = int(hp.get("lstm_units", 50))
+    num_layers    = int(hp.get("num_layers", 2))
+    dropout_rate  = float(hp.get("dropout_rate", 0.2))
+    learning_rate = float(hp.get("learning_rate", 1e-3))
+    batch_size    = int(hp.get("batch_size", 32))
+    epochs        = int(hp.get("epochs", 100))
+
+    # --- 2) Construir modelo con esos HP ---
+    modelo = crear_modelo_lstm(
+        input_shape=(LOOKBACK_WINDOW, 1),
+        lstm_units=lstm_units,
+        num_layers=num_layers,
+        dropout_rate=dropout_rate,
+        learning_rate=learning_rate
+    )
+    cbs = configurar_callbacks()
+
+    # --- 3) Entrenar (train/val) ---
+    hist = entrenar_modelo(
+        modelo, X_train, y_train, X_val, y_val,
+        epochs=epochs, batch_size=batch_size, callbacks=cbs
+    )
+
+    # --- 4) Fitness: RMSE promedio normalizado en VALIDACIÓN ---
+    rmse_prom_norm, rmse_h_norm = _rmse_promedio_normalizado(modelo, X_val, y_val)
+
+    # --- 5) Métrica humana: RMSE promedio USD (VALIDACIÓN) ---
+    rmse_prom_usd, rmse_h_usd = _rmse_promedio_usd(modelo, X_val, y_val, scaler)
+
+    # --- 6) (Opcional) gráficos rápidos ---
+    if do_plots:
+        try:
+            graficar_metricas_entrenamiento(hist)
+            h_last = (y_val.shape[1] - 1) if y_val.ndim == 2 else 0
+            graficar_predicciones_multi(
+                modelo, X_val, y_val, scaler, h=h_last,
+                titulo=f'Validación (t+{h_last+1})'
+            )
+        except Exception as e:
+            print(f"[GA] plot skip: {e}")
+
+    # --- 7) Salida para el AG ---
+    return {
+        "fitness": rmse_prom_norm,                  # <- usar para seleccionar (minimizar)
+        "rmse_prom_norm": rmse_prom_norm,
+        "rmse_h_norm": rmse_h_norm,                # lista H (t+1 .. t+H)
+        "rmse_prom_usd": rmse_prom_usd,
+        "rmse_h_usd": rmse_h_usd,                  # lista H (en USD)
+        "best_epoch": int(np.argmin(hist.history['val_loss']) + 1),
+        "val_loss_min": float(np.min(hist.history['val_loss'])),
+        "params": {
+            "lstm_units": lstm_units,
+            "num_layers": num_layers,
+            "dropout_rate": dropout_rate,
+            "learning_rate": learning_rate,
+            "batch_size": batch_size,
+            "epochs": epochs,
+            "lookback_window": LOOKBACK_WINDOW,
+            "prediction_horizon": PREDICTION_HORIZON
+        }
+    }
+    
+
+#defino la función para llamarla desde ag_opt.py
+def main():
 # Graficar evolución de métricas durante entrenamiento
-graficar_metricas_entrenamiento(historial_modelo)
+    graficar_metricas_entrenamiento(historial_modelo)
 
 # Evaluar modelo
-resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
+    resultados_evaluacion = evaluar_modelo(modelo_lstm, X_test, y_test)
 
 # Graficar predicciones del último horizonte disponible
-ultimo_horizonte = PREDICTION_HORIZON - 1  # Índice del último horizonte (0-based)
-graficar_predicciones_multi(modelo_lstm, X_test, y_test, scaler, h=ultimo_horizonte, 
+    ultimo_horizonte = PREDICTION_HORIZON - 1  # Índice del último horizonte (0-based)
+    graficar_predicciones_multi(modelo_lstm, X_test, y_test, scaler, h=ultimo_horizonte, 
                            titulo=f'Predicciones en Test (t+{ultimo_horizonte + 1})')
 
 # Evaluación completa de todos los horizontes de predicción
-print("\n" + " ANÁLISIS COMPLETO DE HORIZONTES DE PREDICCIÓN ")
+    print("\n" + " ANÁLISIS COMPLETO DE HORIZONTES DE PREDICCIÓN ")
 
 # Necesitamos los datos históricos desnormalizados para el contexto
-datos_historicos_desnorm = scaler.inverse_transform(datos_normalizados.reshape(-1, 1)).ravel()
+    datos_historicos_desnorm = scaler.inverse_transform(datos_normalizados.reshape(-1, 1)).ravel()
 
-resultados_horizontes = evaluar_predicciones_futuras(
-    modelo_lstm, X_test, y_test, scaler, 
-    datos_historicos=datos_historicos_desnorm, 
-    fechas_historicas=None,  
-    max_horizonte=PREDICTION_HORIZON  
-)
+    resultados_horizontes = evaluar_predicciones_futuras(
+        modelo_lstm, X_test, y_test, scaler, 
+        datos_historicos=datos_historicos_desnorm, 
+        fechas_historicas=None,  
+        max_horizonte=PREDICTION_HORIZON  
+    )
 
-
-
-
-
+if __name__ == "__main__":
+    main()
