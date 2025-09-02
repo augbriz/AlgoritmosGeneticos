@@ -434,13 +434,19 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
     print("Entrenamiento completado")
     return historial
 
-# Crear modelo
-modelo_lstm = crear_modelo_lstm(input_shape=(LOOKBACK_WINDOW, 1))
+# Crear modelo con hiperparámetros originales
+modelo_lstm = crear_modelo_lstm(
+    input_shape=(LOOKBACK_WINDOW, 1),
+    lstm_units=50,
+    num_layers=2,
+    dropout_rate=0.2,
+    learning_rate=0.001
+)
 
 # Configurar callbacks
 callbacks = configurar_callbacks()
 
-# Entrenar modelo
+# Entrenar modelo con hiperparámetros originales
 historial_modelo = entrenar_modelo(
     modelo_lstm, X_train, y_train, X_val, y_val, 
     epochs=100, batch_size=32, callbacks=callbacks
@@ -582,7 +588,7 @@ def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None):
 
 def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historicos, fechas_historicas=None, max_horizonte=PREDICTION_HORIZON):
     """
-    Visualización simple y efectiva de predicciones futuras con análisis de error
+    Visualización simple y efectiva de predicciones futuras con análisis de error y porcentajes de cambio
     
     Args:
         modelo: Modelo LSTM entrenado
@@ -616,6 +622,14 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
     # Calcular RMSE promedio
     rmse_promedio = np.mean(rmse_por_horizonte)
     
+    # 1.1 Calcular porcentajes de cambio respecto al precio actual
+    precio_actual = datos_historicos[-1]  # Último precio histórico conocido
+    porcentajes_cambio = []
+    
+    for pred in predicciones_ejemplo:
+        cambio_porcentual = ((pred - precio_actual) / precio_actual) * 100
+        porcentajes_cambio.append(cambio_porcentual)
+    
     # 2. GRÁFICO 1: Serie histórica + predicciones futuras con banda de error
     plt.figure(figsize=(15, 8))
     
@@ -647,30 +661,40 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
     plt.tight_layout()
     plt.show()
     
-    # 3. GRÁFICO 2: Tabla de predicciones
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # 3. GRÁFICO 2: Tabla de predicciones con porcentajes
+    fig, ax = plt.subplots(figsize=(12, 7))
     ax.axis('tight')
     ax.axis('off')
     
     # Preparar datos para la tabla
     tabla_data = []
     for i in range(max_horizonte):
+        # Determinar color del porcentaje (verde para subida, rojo para bajada)
+        porcentaje = porcentajes_cambio[i]
+        direccion = "SUBE" if porcentaje > 0 else "BAJA" if porcentaje < 0 else "IGUAL"
+        signo = "+" if porcentaje > 0 else ""
+        
         tabla_data.append([
             f't+{i+1}',
             f'${predicciones_ejemplo[i]:.2f}',
+            f'{signo}{porcentaje:.2f}%',
+            direccion,
             f'±${rmse_por_horizonte[i]:.2f}'
         ])
     
-    # Agregar fila del promedio
-    tabla_data.append(['', '', ''])  # Fila vacía
-    tabla_data.append(['PROMEDIO', '', f'±${rmse_promedio:.2f}'])
+    # Agregar fila vacía y promedio
+    tabla_data.append(['', '', '', '', ''])  # Fila vacía
+    promedio_cambio = np.mean(porcentajes_cambio)
+    direccion_prom = "SUBE" if promedio_cambio > 0 else "BAJA" if promedio_cambio < 0 else "IGUAL"
+    signo_prom = "+" if promedio_cambio > 0 else ""
+    tabla_data.append(['PROMEDIO', '', f'{signo_prom}{promedio_cambio:.2f}%', direccion_prom, f'±${rmse_promedio:.2f}'])
     
     # Crear tabla
     tabla = ax.table(cellText=tabla_data,
-                    colLabels=['Horizonte', 'Predicción (USD)', 'RMSE histórico (USD)'],
+                    colLabels=['Horizonte', 'Predicción (USD)', 'Cambio %', 'Tendencia', 'RMSE histórico (USD)'],
                     cellLoc='center',
                     loc='center',
-                    colWidths=[0.25, 0.35, 0.4])
+                    colWidths=[0.18, 0.25, 0.18, 0.14, 0.25])
     
     # Formatear tabla
     tabla.auto_set_font_size(False)
@@ -678,16 +702,84 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
     tabla.scale(1.2, 2)
     
     # Resaltar header
-    for i in range(3):
+    for i in range(5):
         tabla[(0, i)].set_facecolor('#4CAF50')
         tabla[(0, i)].set_text_props(weight='bold', color='white')
     
+    # Colorear filas según tendencia
+    for i in range(1, max_horizonte + 1):
+        porcentaje = porcentajes_cambio[i-1]
+        if porcentaje > 0:
+            color = '#E8F5E8'  # Verde claro para subidas
+        elif porcentaje < 0:
+            color = '#FFE8E8'  # Rojo claro para bajadas
+        else:
+            color = '#F0F0F0'  # Gris para sin cambio
+        
+        for j in range(5):
+            tabla[(i, j)].set_facecolor(color)
+    
     # Resaltar fila del promedio
-    for i in range(3):
+    for i in range(5):
         tabla[(max_horizonte + 2, i)].set_facecolor('#FFC107')
         tabla[(max_horizonte + 2, i)].set_text_props(weight='bold')
     
-    plt.title('Tabla de Predicciones con Error Esperado', fontsize=16, fontweight='bold', pad=20)
+    plt.title('Predicciones con Porcentajes de Cambio y Error Esperado', fontsize=16, fontweight='bold', pad=20)
+    plt.tight_layout()
+    plt.show()
+    
+    # 3.1 NUEVO GRÁFICO: Porcentajes de cambio por horizonte
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Gráfico de barras para porcentajes
+    horizontes = list(range(1, max_horizonte + 1))
+    colors = ['green' if p > 0 else 'red' if p < 0 else 'gray' for p in porcentajes_cambio]
+    
+    bars = ax1.bar(horizontes, porcentajes_cambio, color=colors, alpha=0.7, edgecolor='black')
+    ax1.axhline(y=0, color='black', linestyle='-', linewidth=1)
+    ax1.set_title('Porcentaje de Cambio por Horizonte de Predicción', fontsize=14, fontweight='bold')
+    ax1.set_xlabel('Horizonte (días)', fontsize=12)
+    ax1.set_ylabel('Cambio Porcentual (%)', fontsize=12)
+    ax1.grid(True, alpha=0.3, axis='y')
+    
+    # Anotar valores en cada barra
+    for i, (bar, porcentaje) in enumerate(zip(bars, porcentajes_cambio)):
+        height = bar.get_height()
+        ax1.annotate(f'{porcentaje:+.2f}%',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3 if height >= 0 else -15),
+                    textcoords="offset points",
+                    ha='center', va='bottom' if height >= 0 else 'top',
+                    fontweight='bold', fontsize=10)
+    
+    # Gráfico de línea para evolución de precios predichos
+    ax2.plot(horizontes, predicciones_ejemplo, 'o-', linewidth=3, markersize=8, color='blue', label='Predicciones')
+    ax2.axhline(y=precio_actual, color='red', linestyle='--', linewidth=2, 
+               label=f'Precio actual: ${precio_actual:.2f}')
+    
+    # Llenar área entre precio actual y predicciones
+    ax2.fill_between(horizontes, precio_actual, predicciones_ejemplo, 
+                    where=np.array(predicciones_ejemplo) >= precio_actual, 
+                    color='green', alpha=0.2, interpolate=True, label='Zona de ganancia')
+    ax2.fill_between(horizontes, precio_actual, predicciones_ejemplo, 
+                    where=np.array(predicciones_ejemplo) < precio_actual, 
+                    color='red', alpha=0.2, interpolate=True, label='Zona de pérdida')
+    
+    ax2.set_title('Evolución de Precios Predichos vs Precio Actual', fontsize=14, fontweight='bold')
+    ax2.set_xlabel('Horizonte (días)', fontsize=12)
+    ax2.set_ylabel('Precio (USD)', fontsize=12)
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    # Anotar valores en cada punto
+    for i, pred in enumerate(predicciones_ejemplo):
+        ax2.annotate(f'${pred:.2f}',
+                    xy=(i+1, pred),
+                    xytext=(0, 10),
+                    textcoords="offset points",
+                    ha='center', va='bottom',
+                    fontweight='bold', fontsize=9)
+    
     plt.tight_layout()
     plt.show()
     
@@ -714,19 +806,46 @@ def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historico
     plt.tight_layout()
     plt.show()
     
-    # 5. Resumen en consola
-    print("\n" + "="*60)
-    print(" RESUMEN DE PREDICCIONES FUTURAS")
-    print("="*60)
-    for i, (pred, error) in enumerate(zip(predicciones_ejemplo, rmse_por_horizonte)):
-        print(f"t+{i+1}: ${pred:.2f} (el modelo suele fallar ~${error:.2f} USD)")
-    print(f"\n RMSE PROMEDIO: ${rmse_promedio:.2f} USD")
-    print("="*60)
+    # 5. Resumen en consola con porcentajes
+    print("\n" + "="*80)
+    print("                    RESUMEN DE PREDICCIONES FUTURAS")
+    print("="*80)
+    print(f"Precio actual de referencia: ${precio_actual:.2f}")
+    print("-" * 80)
+    
+    for i, (pred, error, cambio) in enumerate(zip(predicciones_ejemplo, rmse_por_horizonte, porcentajes_cambio)):
+        direccion = "SUBE" if cambio > 0 else "BAJA" if cambio < 0 else "MANTIENE"
+        signo = "+" if cambio > 0 else ""
+        print(f"t+{i+1}: ${pred:.2f} ({signo}{cambio:.2f}%) {direccion} | Error típico: ±${error:.2f}")
+    
+    print("-" * 80)
+    promedio_cambio = np.mean(porcentajes_cambio)
+    direccion_prom = "SUBE" if promedio_cambio > 0 else "BAJA" if promedio_cambio < 0 else "MANTIENE"
+    signo_prom = "+" if promedio_cambio > 0 else ""
+    
+    print(f"TENDENCIA PROMEDIO: {signo_prom}{promedio_cambio:.2f}% {direccion_prom}")
+    print(f"RMSE PROMEDIO: ${rmse_promedio:.2f} USD")
+    
+    # Análisis de volatilidad predicha
+    volatilidad_predicha = np.std(porcentajes_cambio)
+    print(f"VOLATILIDAD PREDICHA: ±{volatilidad_predicha:.2f}%")
+    
+    # Rango de predicciones
+    precio_min = min(predicciones_ejemplo)
+    precio_max = max(predicciones_ejemplo)
+    print(f"RANGO DE PRECIOS: ${precio_min:.2f} - ${precio_max:.2f} (spread: ${precio_max - precio_min:.2f})")
+    print("="*80)
     
     return {
         'predicciones': predicciones_ejemplo,
+        'porcentajes_cambio': porcentajes_cambio,
+        'precio_actual': precio_actual,
         'rmse_por_horizonte': rmse_por_horizonte,
-        'rmse_promedio': rmse_promedio
+        'rmse_promedio': rmse_promedio,
+        'tendencia_promedio': np.mean(porcentajes_cambio),
+        'volatilidad_predicha': np.std(porcentajes_cambio),
+        'precio_min': min(predicciones_ejemplo),
+        'precio_max': max(predicciones_ejemplo)
     }
     
     # Resumen interpretativo
