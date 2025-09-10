@@ -49,6 +49,8 @@ TEST_SPLIT = 0.15         # 15% para prueba
 
 PREDICTION_HORIZON = 5
 
+PAPER_FIGS = True  # Estilo para figuras de paper (dos columnas)
+
 print(f"Configuracion del proyecto:")
 print(f"   • Ticker: {TICKER}")
 print(f"   • Datos: {NUM_DATOS} puntos historicos")
@@ -249,19 +251,35 @@ def dividir_datos(X, y, train_split=0.7, val_split=0.15, test_split=0.15):
     
     
     y_plot = y[:, 0] if y.ndim == 2 else y  # t+1
-    plt.figure(figsize=(14,6))
-    plt.plot(range(len(y_plot)), y_plot, label='Serie', color='lightgray')
-
-    plt.plot(range(0, train_end), y_plot[:train_end], label='Train', color='blue')
-    plt.plot(range(train_end, val_end), y_plot[train_end:val_end], label='Validation', color='orange')
-    plt.plot(range(val_end, n_samples), y_plot[val_end:], label='Test', color='green')
-
-    plt.title("División Train / Validation / Test ")
-    plt.xlabel("Índice temporal")
-    plt.ylabel("Valor normalizado")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.show()
+    if PAPER_FIGS:
+        import matplotlib as mpl
+        fig, ax = plt.subplots(figsize=(3.35, 2.2))
+        lw = 1.1
+        ax.plot(range(len(y_plot)), y_plot, label='Serie', color='lightgray', linewidth=lw)
+        ax.plot(range(0, train_end), y_plot[:train_end], label='Train', color='blue', linewidth=lw)
+        ax.plot(range(train_end, val_end), y_plot[train_end:val_end], label='Validation', color='orange', linewidth=lw)
+        ax.plot(range(val_end, n_samples), y_plot[val_end:], label='Test', color='green', linewidth=lw)
+        ax.set_xlabel('Índice', fontsize=8)
+        ax.set_ylabel('Valor norm.', fontsize=8)
+        ax.tick_params(axis='both', labelsize=7, length=3, pad=1)
+        ax.grid(True, alpha=0.3, linewidth=0.3)
+        leg = ax.legend(frameon=False, fontsize=7, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0.)
+        fig.tight_layout(pad=0.4)
+        # Asegurar espacio para la leyenda externa
+        fig.subplots_adjust(right=0.78)
+        plt.show()
+    else:
+        plt.figure(figsize=(14,6))
+        plt.plot(range(len(y_plot)), y_plot, label='Serie', color='lightgray')
+        plt.plot(range(0, train_end), y_plot[:train_end], label='Train', color='blue')
+        plt.plot(range(train_end, val_end), y_plot[train_end:val_end], label='Validation', color='orange')
+        plt.plot(range(val_end, n_samples), y_plot[val_end:], label='Test', color='green')
+        plt.title("División Train / Validation / Test ")
+        plt.xlabel("Índice temporal")
+        plt.ylabel("Valor normalizado")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
 
     return X_train, X_val, X_test, y_train, y_val, y_test
 
@@ -434,22 +452,45 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
     print("Entrenamiento completado")
     return historial
 
-# Crear modelo con hiperparámetros originales
+# ===============================
+# SELECCIÓN DE HIPERPARÁMETROS
+# ===============================
+# Bandera para usar hiperparámetros optimizados (True) u originales (False)
+opt = True  # Cambia a False para reproducir configuración inicial
+
+HYPERPARAMS_ORIG = {
+    'lstm_units': 50,
+    'num_layers': 2,
+    'dropout_rate': 0.2,
+    'learning_rate': 0.001,
+    'epochs': 100,
+    'batch_size': 32
+}
+
+HYPERPARAMS_OPT = {
+    'lstm_units': 83,
+    'num_layers': 1,
+    'dropout_rate': 0.05,
+    'learning_rate': 0.001695791207482529,
+    'epochs': 60,
+    'batch_size': 16
+}
+
+hp_sel = HYPERPARAMS_OPT if opt else HYPERPARAMS_ORIG
+
 modelo_lstm = crear_modelo_lstm(
     input_shape=(LOOKBACK_WINDOW, 1),
-    lstm_units=50,
-    num_layers=2,
-    dropout_rate=0.2,
-    learning_rate=0.001
+    lstm_units=hp_sel['lstm_units'],
+    num_layers=hp_sel['num_layers'],
+    dropout_rate=hp_sel['dropout_rate'],
+    learning_rate=hp_sel['learning_rate']
 )
 
-# Configurar callbacks
 callbacks = configurar_callbacks()
 
-# Entrenar modelo con hiperparámetros originales
 historial_modelo = entrenar_modelo(
-    modelo_lstm, X_train, y_train, X_val, y_val, 
-    epochs=100, batch_size=32, callbacks=callbacks
+    modelo_lstm, X_train, y_train, X_val, y_val,
+    epochs=hp_sel['epochs'], batch_size=hp_sel['batch_size'], callbacks=callbacks
 )
 
 # =============================================================================
@@ -552,39 +593,63 @@ def evaluar_modelo(modelo, X_test, y_test):
     
     return metrica_resultados
 
-def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None):
+def graficar_predicciones_multi(modelo, X, y_real, scaler, h=0, titulo=None, paper_style=None):
+    """Grafica predicciones vs valores reales para un horizonte h.
+
+    Parámetros
+    ----------
+    modelo : keras.Model
+    X, y_real : arrays
+    scaler : fitted scaler
+    h : int horizonte (0-based)
+    titulo : str (NO se usa en modo paper, se asume caption en LaTeX)
+    paper_style : bool | None  -> Forzar estilo paper si True; si None usa PAPER_FIGS global
+    """
     if titulo is None:
         titulo = f'Predicciones (h = t+{h+1})'
+    if paper_style is None:
+        paper_style = PAPER_FIGS
 
-    y_pred = modelo.predict(X, verbose=0)           # (N, H)
-    
-    # Validar que el horizonte solicitado esté disponible
+    y_pred = modelo.predict(X, verbose=0)  # (N, H)
+
     max_horizonte_disponible = y_pred.shape[1]
     if h >= max_horizonte_disponible:
         print(f"  Horizonte h={h} no disponible. Máximo disponible: {max_horizonte_disponible-1}")
         print(f"Usando horizonte h={max_horizonte_disponible-1} en su lugar.")
         h = max_horizonte_disponible - 1
-    
-    # seleccionar horizonte h
-    y_pred_h_norm = y_pred[:, h].reshape(-1,1)
-    y_real_h_norm = y_real[:, h].reshape(-1,1)
 
+    y_pred_h_norm = y_pred[:, h].reshape(-1, 1)
+    y_real_h_norm = y_real[:, h].reshape(-1, 1)
     y_pred_h = scaler.inverse_transform(y_pred_h_norm).ravel()
     y_real_h = scaler.inverse_transform(y_real_h_norm).ravel()
 
-    print(f"RMSE (h=t+{h+1}) en USD: {rmse(y_real_h, y_pred_h):.4f}")
+    valor_rmse = rmse(y_real_h, y_pred_h)
+    print(f"RMSE (h=t+{h+1}) en USD: {valor_rmse:.4f}")
 
-    # Graficar
-    plt.figure(figsize=(14, 8))
-    plt.plot(y_real_h, label='Real', linewidth=2, color='blue')
-    plt.plot(y_pred_h, label='Predicción', linewidth=2, color='red')
-    plt.title(titulo, fontsize=16, fontweight='bold')
-    plt.xlabel('Días')
-    plt.ylabel('Precio (USD)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    
-    plt.show()
+    if paper_style:
+        fig, ax = plt.subplots(figsize=(3.35, 2.2))
+        lw = 1.1
+        ax.plot(y_real_h, label='Real', linewidth=lw, color='blue')
+        ax.plot(y_pred_h, label='Predicción', linewidth=lw, color='red')
+        # Sin título interno (irá como caption)
+        ax.set_xlabel('Días', fontsize=8)
+        ax.set_ylabel('Precio (USD)', fontsize=8)
+        ax.tick_params(axis='both', labelsize=7, length=3, pad=1)
+        ax.grid(True, alpha=0.3, linewidth=0.3)
+        ax.legend(frameon=False, fontsize=7, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0.)
+        fig.tight_layout(pad=0.4)
+        fig.subplots_adjust(right=0.78)
+        plt.show()
+    else:
+        plt.figure(figsize=(14, 8))
+        plt.plot(y_real_h, label='Real', linewidth=2, color='blue')
+        plt.plot(y_pred_h, label='Predicción', linewidth=2, color='red')
+        plt.title(titulo, fontsize=16, fontweight='bold')
+        plt.xlabel('Días')
+        plt.ylabel('Precio (USD)')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
 
 def evaluar_predicciones_futuras(modelo, X_test, y_test, scaler, datos_historicos, fechas_historicas=None, max_horizonte=PREDICTION_HORIZON):
     """
