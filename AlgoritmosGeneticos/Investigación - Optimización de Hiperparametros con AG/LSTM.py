@@ -38,10 +38,10 @@ print("Preparado para implementar modelo LSTM")
 # Configuración de datos
 TICKER = "YPF"
 START_DATE = "2008-01-01"
-END_DATE = today
-NUM_DATOS = 1000  # Últimos 1000 datos (como en análisis caótico)
+END_DATE = "2025-09-09"
+NUM_DATOS = 2000
 
-# Configuración del modelo (valores base - se optimizarán con AG)
+# Configuración del modelo 
 LOOKBACK_WINDOW = 20      # Ventana temporal: últimos 20 días para predecir
 TRAIN_SPLIT = 0.7         # 70% para entrenamiento
 VAL_SPLIT = 0.15          # 15% para validación
@@ -61,25 +61,37 @@ print(f"   • Division: {TRAIN_SPLIT:.0%} train, {VAL_SPLIT:.0%} val, {TEST_SPL
 # CARGA Y VISUALIZACIÓN DE DATOS
 
 
-def cargar_datos_ypf():    
-    # Descargar datos 
+def cargar_datos_ypf():
+    """Descarga la serie de precios y aplica recorte opcional.
+
+    Si NUM_DATOS es None usa toda la historia disponible.
+    Caso contrario toma el tail(NUM_DATOS).
+    """
     data = yf.download(TICKER, start=START_DATE, end=END_DATE, progress=False)
-    
-    # Verificar que los datos se descargaron correctamente
     if data.empty or 'Close' not in data.columns:
         raise ValueError(f"No se pudieron obtener datos de cierre para {TICKER}")
-    
-    # Tomar los últimos NUM_DATOS puntos (1000, como en análisis caótico)
-    precios_cierre = data['Close'].dropna().tail(NUM_DATOS)
-    
-    print(f"Datos cargados exitosamente:")
-    print(f"   • Total de datos: {len(precios_cierre)}")
+
+    serie_full = data['Close'].dropna()
+    total_full = len(serie_full)
+
+    if NUM_DATOS is None:
+        precios_cierre = serie_full
+        usado = total_full
+        modo = 'TODOS'
+    else:
+        usados = min(NUM_DATOS, total_full)
+        precios_cierre = serie_full.tail(usados)
+        usado = usados
+        modo = f'Últimos {usados}'
+
+    print("Datos cargados exitosamente:")
+    print(f"   • Total histórico descargado: {total_full}")
+    print(f"   • Usados para el modelo: {usado} ({modo})")
     print(f"   • Rango de fechas: {precios_cierre.index[0].date()} a {precios_cierre.index[-1].date()}")
     print(f"   • Precio minimo: ${float(precios_cierre.min()):.2f}")
     print(f"   • Precio maximo: ${float(precios_cierre.max()):.2f}")
     print(f"   • Precio promedio: ${float(precios_cierre.mean()):.2f}")
     print(f"   • Volatilidad (std): ${float(precios_cierre.std()):.2f}")
-    
     return precios_cierre
 
 def visualizar_datos(precios):
@@ -455,8 +467,11 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
 # ===============================
 # SELECCIÓN DE HIPERPARÁMETROS
 # ===============================
-# Bandera para usar hiperparámetros optimizados (True) u originales (False)
-opt = True  # Cambia a False para reproducir configuración inicial
+# Bandera para usar hiperparámetros optimizados (True) o base (False).
+
+
+opt = False   # opt decide entre OPT y ORIG
+
 
 HYPERPARAMS_ORIG = {
     'lstm_units': 50,
@@ -470,13 +485,16 @@ HYPERPARAMS_ORIG = {
 HYPERPARAMS_OPT = {
     'lstm_units': 83,
     'num_layers': 1,
-    'dropout_rate': 0.05,
-    'learning_rate': 0.001695791207482529,
+    'dropout_rate': 0.105,
+    'learning_rate': 0.001418,
     'epochs': 60,
     'batch_size': 16
 }
 
 hp_sel = HYPERPARAMS_OPT if opt else HYPERPARAMS_ORIG
+print(f"\nUsando hiperparámetros {'OPTIMIZADOS' if opt else 'BASE'}:")
+for k, v in hp_sel.items():
+    print(f"   • {k}: {v}")     
 
 modelo_lstm = crear_modelo_lstm(
     input_shape=(LOOKBACK_WINDOW, 1),
