@@ -49,7 +49,7 @@ TEST_SPLIT = 0.15         # 15% para prueba
 
 PREDICTION_HORIZON = 5
 
-PAPER_FIGS = True  # Estilo para figuras de paper (dos columnas)
+PAPER_FIGS = True  # Estilo para figuras de paper (3.5"x2.2")
 
 print(f"Configuracion del proyecto:")
 print(f"   • Ticker: {TICKER}")
@@ -139,20 +139,7 @@ visualizar_datos(datos_ypf)
 # =============================================================================
 
 def normalizar_datos(serie):
-    """
-    Normaliza los datos a escala 0-1 usando MinMaxScaler
-    
-    ¿Por qué normalizar?
-    - Las LSTM funcionan mejor con datos en escala pequeña (0-1)
-    - Evita que valores grandes dominen el entrenamiento
-    - Acelera la convergencia del modelo
-    
-    Args:
-        serie (pd.Series): Serie temporal de precios
-    
-    Returns:
-        tuple: (datos_normalizados, scaler_objeto)
-    """    
+   
     # Crear el escalador MinMax (0-1)
     scaler = MinMaxScaler(feature_range=(0, 1))
     
@@ -178,11 +165,6 @@ def crear_secuencias_temporales(datos, lookback_window, prediction_horizon=PREDI
     - Convierte la serie temporal en ventanas deslizantes
     - Cada ventana tiene 'lookback_window' días de historia
     - El objetivo es predecir el siguiente día (o días)
-    
-    Ejemplo: Si lookback_window=3
-    [1,2,3,4,5,6,7] se convierte en:
-    X=[[1,2,3], [2,3,4], [3,4,5], [4,5,6]]
-    y=[4, 5, 6, 7]
     
     Args:
         datos (array): Datos normalizados
@@ -470,7 +452,7 @@ def entrenar_modelo(modelo, X_train, y_train, X_val, y_val,
 # Bandera para usar hiperparámetros optimizados (True) o base (False).
 
 
-opt = False   # opt decide entre OPT y ORIG
+opt = True   # opt decide entre OPT y ORIG
 
 
 HYPERPARAMS_ORIG = {

@@ -15,18 +15,16 @@ SPACE = {
     "dropout_rate": (0.05, 0.35),         # float
     "learning_rate":(1e-4, 3e-3),         # float 
     "batch_size":   [16, 32, 64],         # categórico
-    "epochs":       (40, 90),             # enteros 
-    # Nota: PREDICTION_HORIZON queda fijo en 5 (lo maneja lstm.py)
-    # Nota: lookback_window lo mantengo fijo al inicio para no rearmar X,y en este paso
+    "epochs":       (40, 90),             # enteros     
 }
 
 # ----- Hiperparámetros del GA -----
-POP_SIZE = 8   # Tamaño de la población -> población chica para probar
+POP_SIZE = 8   # Tamaño de la población 
 N_GEN      = 2 # generaciones
-ELITE_K    = 2 # elitismo (cuantos pasan directo)
+ELITE_K    = 2 # elitismo 
 TOURN_K    = 3 # torneo 
 CX_RATE    = 0.9 # prob. crossover
-MUT_RATE   = 0.3 # prob. mutación
+MUT_RATE   = 0.2 # prob. mutación
 
 DO_PLOTS = False  # no graficar durante la evaluación para ir rápido
 
@@ -98,7 +96,7 @@ def crossover(hp1, hp2):
                           ("epochs", SPACE["epochs"])]:
         if np.random.rand() < 0.5:
             child1[key], child2[key] = child2[key], child1[key]
-        # asegurar límites (por si venimos “sucios” de generaciones previas)
+        
         child1[key] = _bound_int(child1[key], lo, hi)
         child2[key] = _bound_int(child2[key], lo, hi)
 
@@ -111,7 +109,7 @@ def crossover(hp1, hp2):
     if child2["batch_size"] not in SPACE["batch_size"]:
         child2["batch_size"] = min(SPACE["batch_size"], key=lambda x: abs(x - child2["batch_size"]))
 
-    # ----- floats (promedio + ruido Gaussian) -----
+    # ----- floats (promedio + ruido Gaussiano) -----
     # dropout
     if np.random.rand() < 0.5:
         m = (hp1["dropout_rate"] + hp2["dropout_rate"]) / 2.0
